@@ -82,7 +82,7 @@ pre code {
 .portal-container {
   display: flex;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   overflow: hidden;
   position: relative; 
   background: #000;
@@ -101,10 +101,10 @@ pre code {
   font-size: 12rem; 
   line-height: 1;
   white-space: nowrap; 
-  
+  text-align: center;
   /* 视觉风格：半透明 + 混合模式 */
   color: #ffffff;
-  opacity: 0.3; /* 极度透明 */
+  opacity: 0.1; /* 极度透明 */
   pointer-events: none; /* 鼠标穿透 */
   
   /* 动画过渡 */
@@ -166,6 +166,9 @@ pre code {
   flex: 2; /* 变宽 */
   background-color: #eeeeee; /* 变白 */
 }
+.death-side:hover h1 { color: #000; }
+.death-side:hover p { color: #333; }
+
 .cv-side:hover {
   flex: 2; /* 变宽 */
   background-color: #eeeeee; /* 变白 */
