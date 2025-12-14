@@ -27,29 +27,57 @@ is_home: true
 </div>
 
 <script>
+ 
+  window.addEventListener('pageshow', function(event) {
+    // 强制复原所有样式
+    const deathSide = document.querySelector('.death-side');
+    const cvSide = document.querySelector('.cv-side');
+    // 清除内联样式，让 CSS 重新接管
+    if (deathSide) {
+      deathSide.style.backgroundColor = '';
+      deathSide.querySelector('h1').style.color = '';
+      deathSide.querySelector('p').style.opacity = '';
+    }
+    if (cvSide) {
+      cvSide.style.backgroundColor = '';
+      cvSide.querySelector('h1').style.color = '';
+      cvSide.querySelector('p').style.opacity = '';
+    }
+  });
+
   document.addEventListener('keydown', function(event) {
     const key = event.key.toLowerCase();
 
     // 封装触发函数
     function triggerPortal(sideClass, linkId) {
       const sideEl = document.querySelector('.' + sideClass);
+      if (!sideEl) return;
+      
       const titleEl = sideEl.querySelector('h1');
       const cmdEl = sideEl.querySelector('p'); 
       const linkEl = document.getElementById(linkId);
+      if (!linkEl) return;
+
+      // 视觉反馈
       sideEl.style.backgroundColor = '#eeeeee';
-      titleEl.style.color = '#000000';
-      cmdEl.style.opacity = '1';
-      cmdEl.style.transform = 'translateY(0)';
+      if (titleEl) titleEl.style.color = '#000000';
+      if (cmdEl) {
+        cmdEl.style.opacity = '1';
+        cmdEl.style.transform = 'translateY(0)';
+      }
       
+      // 延迟跳转
       setTimeout(function() {
         linkEl.click();
-      }, 200); // 200毫秒 = 0.2秒
+      }, 250); 
     }
 
-
+    // H (Left) 左边
     if (key === 'h') {
       triggerPortal('death-side', 'link-death');
     }
+    
+    // L (Right) 去右边
     if (key === 'l') {
       triggerPortal('cv-side', 'link-cv');
     }
