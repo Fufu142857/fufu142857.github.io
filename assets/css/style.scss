@@ -75,7 +75,30 @@ pre code {
 /* 传送门文字 */
 .portal h1 { font-size: 3rem; margin: 0; letter-spacing: -2px; }
 .portal p { font-size: 1rem; margin-top: 20px; font-family: 'Hack'; }
-.portal a { position: absolute; top:0; left:0; width:100%; height:100%; border:none; } /* 让整个块可点 */
+.portal a { position: absolute; top:0; left:0; width:100%; height:100%; border:none; } 
+
+.center-anchor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* 绝对居中 */
+  z-index: 100;
+  pointer-events: none; 
+  
+  /* 视觉样式 */
+  background-color: #000; 
+  padding: 10px 20px;
+  border: 1px solid #333; /* 细微边框 */
+}
+
+.center-anchor span {
+  font-family: 'Hack', monospace;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #fff;
+  letter-spacing: 4px; 
+  text-transform: uppercase;
+}
 
 /* --- 内页：Vim 风格布局 --- */
 .terminal-layout {
