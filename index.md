@@ -12,6 +12,7 @@ is_home: true
     <div class="portal-content">
     <h1>DEATH</h1>
     <p>cd ./death_wiki</p>
+    </div>
     <a href="{{ "/death/readme" | relative_url }}"></a>
   </div>
 
@@ -19,6 +20,7 @@ is_home: true
     <div class="portal-content">
     <h1>Computer Vision</h1>
     <p>cd ./CV_study</p>
+    <div>
     <a href="{{ "/CV_study/readme" | relative_url }}"></a>
   </div>
 
