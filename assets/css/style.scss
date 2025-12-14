@@ -8,9 +8,9 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #000000 !important; /* 死寂黑 */
-  color: #eeeeee !important; /* 灰白字 */
-  
+  /* color: #eeeeee !important;*/ /* 灰白字 */
+  background-color: #1a1b1e !important; 
+  color: #cccccc !important;
   font-family: 'Hack', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif !important;
   /* letter-spacing: 0.02em; */
   font-size: 20px;
@@ -52,6 +52,7 @@ pre code {
   height: 100vh;
   width: 100%;
   overflow: hidden;
+  background: #000000 !important;
 }
 
 .portal {
@@ -149,7 +150,7 @@ pre code {
 }
 .portal p {
   font-family: 'Hack';
-  color: #999;
+  color: #333;
   margin-top: 10px;
   opacity: 0; /* 平时不显示命令，悬停才显示 */
   transform: translateY(20px);
