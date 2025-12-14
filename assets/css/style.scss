@@ -1,3 +1,4 @@
+/*
 ---
 ---
 
@@ -12,3 +13,75 @@
   a { color: #ffffff !important; text-decoration: underline; }
 
   h1, h2, h3 { color: #ffffff !important; border-bottom: 1px solid #333; }
+*/
+---
+---
+
+@import url('https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css');
+
+// @import "{{ site.theme }}";
+
+body {
+  background-color: #000000 !important; /* 死寂黑 */
+  color: #eeeeee !important; /* 灰白字 */
+  
+  /* 核心字体栈 (Font Stack)：
+     1. Hack: 英文优先用这个。
+     2. -apple-system / BlinkMacSystemFont: Mac 系统默认黑体 (PingFang)。
+     3. "Microsoft YaHei": Windows 系统默认黑体。
+     4. sans-serif: 保底。
+  */
+  font-family: 'Hack', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif !important;
+  
+  font-size: 16px;
+  line-height: 1.8; /* 行高大一点，长文阅读才舒服 */
+}
+
+/* 链接样式：极简白 */
+a {
+  color: #ffffff !important;
+  text-decoration: underline;
+  text-underline-offset: 4px; 
+}
+a:hover {
+  color: #aaaaaa !important;
+  text-decoration: none;
+}
+
+/* 标题样式：纯粹的粗黑体 */
+h1, h2, h3, h4, h5, h6 {
+  color: #ffffff !important;
+  font-weight: 700;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  border-bottom: 1px solid #333; /* 极简的分割线 */
+  padding-bottom: 0.3em;
+}
+
+/* 代码块：必须强制 Hack，且背景深一点 */
+pre, code {
+  font-family: 'Hack', monospace !important;
+  background-color: #111111 !important; 
+  color: #50fa7b; /* 经典的 Terminal 绿，或者改成 #fff */
+  border: 1px solid #333;
+  border-radius: 4px;
+}
+
+/* 引用块：模仿 Typora 的左侧竖线 */
+blockquote {
+  color: #888;
+  border-left: 4px solid #444;
+  margin-left: 0;
+  padding-left: 1em;
+  font-style: italic;
+}
+
+/* 侧边栏导航样式 */
+.custom-nav {
+  margin-top: 40px;
+  border-top: 1px dashed #333;
+  padding-top: 20px;
+}
+.custom-nav ul { list-style: none; padding-left: 0; }
+.custom-nav li ul { padding-left: 20px; border-left: 1px solid #333; } /* 子菜单加个竖线指引 */
+.custom-nav strong { color: #fff; }
