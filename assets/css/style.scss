@@ -1,0 +1,14 @@
+---
+---
+
+  @import "{{ site.theme }}";
+  
+  body {
+    background-color: #000000 !important;
+    color: #eeeeee !important;
+    font-family: "Courier New", monospace !important;
+  }
+
+  a { color: #ffffff !important; text-decoration: underline; }
+
+  h1, h2, h3 { color: #ffffff !important; border-bottom: 1px solid #333; }
