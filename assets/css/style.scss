@@ -50,7 +50,7 @@ pre code {
 .portal-container {
   display: flex;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -110,8 +110,6 @@ pre code {
   /* 动画过渡 */
   transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   filter: blur(0px);
-
-  margin-top: -10px; 
 }
 
 /* 2. 传送门基础设定 */
@@ -151,7 +149,7 @@ pre code {
 }
 .portal p {
   font-family: 'Hack';
-  color: #666;
+  color: #999;
   margin-top: 10px;
   opacity: 0; /* 平时不显示命令，悬停才显示 */
   transform: translateY(20px);
@@ -199,7 +197,7 @@ pre code {
   left: 0;
   width: 100%;
   background: #111;
-  color: #666;
+  color: #999;
   padding: 5px 20px;
   border-top: 1px solid #333;
   font-size: 12px;
