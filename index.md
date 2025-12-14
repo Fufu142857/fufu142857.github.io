@@ -25,3 +25,33 @@ is_home: true
   </div>
 
 </div>
+
+<script>
+  document.addEventListener('keydown', function(event) {
+    const key = event.key.toLowerCase();
+
+    // 封装触发函数
+    function triggerPortal(sideClass, linkId) {
+      const sideEl = document.querySelector('.' + sideClass);
+      const titleEl = sideEl.querySelector('h1');
+      const cmdEl = sideEl.querySelector('p'); 
+      const linkEl = document.getElementById(linkId);
+      sideEl.style.backgroundColor = '#eeeeee';
+      titleEl.style.color = '#000000';
+      cmdEl.style.opacity = '1';
+      cmdEl.style.transform = 'translateY(0)';
+      
+      setTimeout(function() {
+        linkEl.click();
+      }, 200); // 200毫秒 = 0.2秒，既有打击感又不卡
+    }
+
+
+    if (key === 'j') {
+      triggerPortal('death-side', 'link-death');
+    }
+    if (key === 'k') {
+      triggerPortal('cv-side', 'link-cv');
+    }
+  });
+</script>
