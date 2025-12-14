@@ -46,7 +46,7 @@ pre code {
   color: #a9b7c6; /* 默认代码灰 */
   font-size: 13px;
 }
-
+/*
 .portal-container {
   display: flex;
   height: 100vh;
@@ -60,7 +60,7 @@ pre code {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border: 1px solid #222; /* 极淡的分割线 */
+  border: 1px solid #222; 
   transition: all 0.5s;
   cursor: pointer;
   position: relative;
@@ -69,9 +69,9 @@ pre code {
 .portal:hover {
   background-color: #fff;
   color: #000;
-  flex: 1.5; /* 悬停时变宽 */
+  flex: 1.5; 
 }
-
+*/
 /* 传送门文字 */
 /*
 .portal h1 { font-size: 3rem; margin: 0; letter-spacing: -2px; }
