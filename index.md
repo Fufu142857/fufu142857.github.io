@@ -13,7 +13,7 @@ is_home: true
     <h1>DEATH</h1>
     <p>cd ./death_wiki</p>
     </div>
-    <a href="{{ "/death/readme" | relative_url }}"></a>
+    <a href="{{ "/death/readme" | relative_url }}">id="link-death"></a>
   </div>
 
   <div class="portal cv-side">
@@ -21,7 +21,7 @@ is_home: true
     <h1>CV_Lab</h1>
     <p>cd ./CV_study</p>
     </div>
-    <a href="{{ "/CV_study/readme" | relative_url }}"></a>
+    <a href="{{ "/CV_study/readme" | relative_url }}">id="link-cv"></a>
   </div>
 
 </div>
@@ -43,14 +43,14 @@ is_home: true
       
       setTimeout(function() {
         linkEl.click();
-      }, 200); // 200毫秒 = 0.2秒，既有打击感又不卡
+      }, 200); // 200毫秒 = 0.2秒
     }
 
 
-    if (key === 'j') {
+    if (key === 'h') {
       triggerPortal('death-side', 'link-death');
     }
-    if (key === 'k') {
+    if (key === 'l') {
       triggerPortal('cv-side', 'link-cv');
     }
   });
