@@ -17,3 +17,5 @@ title: 索引
   ##### CV: Computer Vision 计算机视觉
 
   + 计划先把课程学完。
+
+else if (isArray(obj)
