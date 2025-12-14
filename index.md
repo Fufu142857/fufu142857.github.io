@@ -18,7 +18,7 @@ is_home: true
 
   <div class="portal cv-side">
     <div class="portal-content">
-    <h1>Computer Vision</h1>
+    <h1>CV_Lab</h1>
     <p>cd ./CV_study</p>
     <div>
     <a href="{{ "/CV_study/readme" | relative_url }}"></a>
