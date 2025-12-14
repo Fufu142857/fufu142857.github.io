@@ -3,26 +3,28 @@
 
 @import url('https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css');
 
-// @import "{{ site.theme }}";
+* { box-sizing: border-box; }
 
 body {
+  margin: 0;
+  padding: 0;
   background-color: #000000 !important; /* 死寂黑 */
   color: #eeeeee !important; /* 灰白字 */
   
-  /* 核心字体栈 (Font Stack)：
-     1. Hack: 英文优先用这个。
-     2. -apple-system / BlinkMacSystemFont: Mac 系统默认黑体 (PingFang)。
-     3. "Microsoft YaHei": Windows 系统默认黑体。
-     4. sans-serif: 保底。
-  */
   font-family: 'Hack', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif !important;
-  
-  font-size: 16px;
+  letter-spacing: 0.02em;
+  font-size: 24px;
   line-height: 1.8; /* 行高大一点，长文阅读才舒服 */
+  display: flex;
+  min-height: 100vh;
+
+  /* 让字体渲染更锐利 (仅限 MacOS) */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* 链接样式：极简白 */
-/*a {
+a {
   color: #ffffff !important;
   text-decoration: underline;
   text-underline-offset: 4px; 
@@ -30,35 +32,93 @@ body {
 a:hover {
   color: #aaaaaa !important;
   text-decoration: none;
-}*/
+}
 
-/* 标题样式：纯粹的粗黑体 */
-h1, h2, h3 { color: #ffffff !important; border-bottom: 1px solid #333; }
+.sidebar {
+  width: 280px;
+  background-color: #111111; /* 稍微浅一点的黑，区分层级 */
+  border-right: 1px solid #333;
+  padding: 30px;
+  flex-shrink: 0;
+  position: fixed; /* 固定不动 */
+  height: 100vh;
+  overflow-y: auto;
+}
 
-/* 代码块：必须强制 Hack，且背景深一点 */
+.sidebar-header h1 {
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  border-bottom: none;
+}
+.sidebar-header p {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 0;
+}
+
+nav h3 {
+  font-size: 0.8rem;
+  color: #444;
+  margin-top: 30px;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+nav li a {
+  display: block;
+  padding: 8px 0;
+  color: #999;
+  text-decoration: none;
+  font-family: 'Hack', sans-serif; /* 菜单强制用 Hack */
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+nav li a:hover, nav li a.active {
+  color: #fff;
+  padding-left: 10px; /* 悬停时向右动一下，很有机械感 */
+  border-left: 2px solid #fff;
+}
+
+/* 底部模拟状态栏 */
+.status-bar {
+  position: absolute;
+  bottom: 20px;
+  font-size: 0.75rem;
+  color: #444;
+  width: 100%;
+}
+
+/* 内容区样式 (右) */
+.content {
+  margin-left: 280px; /* 给侧边栏留位置 */
+  padding: 60px 80px;
+  max-width: 900px;
+  width: 100%;
+}
+
+/* 文章内部样式 */
+h1, h2, h3 {
+  color: #fff;
+  border-bottom: 1px solid #222;
+  padding-bottom: 10px;
+  margin-top: 2em;
+}
+
+a { color: #fff; text-decoration: underline; }
+
+/* 代码块增强 */
 pre, code {
   font-family: 'Hack', monospace !important;
-  background-color: #111111 !important; 
-  color: #50fa7b; /* 经典的 Terminal 绿，或者改成 #fff */
-  border: 1px solid #333;
+  background-color: #1a1a1a;
+  color: #00ff00; /* 极客绿 */
   border-radius: 4px;
+  padding: 2px 4px;
 }
-
-/* 引用块：模仿 Typora 的左侧竖线 */
-blockquote {
-  color: #888;
-  border-left: 4px solid #444;
-  margin-left: 0;
-  padding-left: 1em;
-  font-style: italic;
-}
-
-/* 侧边栏导航样式 */
-.custom-nav {
-  margin-top: 40px;
-  border-top: 1px dashed #333;
-  padding-top: 20px;
-}
-.custom-nav ul { list-style: none; padding-left: 0; }
-.custom-nav li ul { padding-left: 20px; border-left: 1px solid #333; } /* 子菜单加个竖线指引 */
-.custom-nav strong { color: #fff; }
+pre { padding: 15px; border: 1px solid #333; }

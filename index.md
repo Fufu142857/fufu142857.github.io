@@ -18,4 +18,11 @@ title: 索引
 
   + 计划先把课程学完。
 
-else if (isArray(obj)
+
+
+```python
+data = sio.loadmat('D:\mini_MMPD\subject1\p1_0.mat')
+for key in data.key():
+  print()
+```
+

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page.title | default: site.title }}</title>
+  <link rel="stylesheet" href="{{ "/assets/css/style.css" | relative_url }}">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>Fufu_Space</h1>
+      <p>> INTJ / CV / Void</p>
+    </div>
+
+    <nav>
+      <h3>📂 PROJECT_ROOT</h3>
+      <ul>
+        <li><a href="{{ "/" | relative_url }}" class="{% if page.url == "/" %}active{% endif %}">📄 index.md (Home)</a></li>
+        <li><a href="{{ "/death" | relative_url }}" class="{% if page.url contains "death" %}active{% endif %}">💀 death.md</a></li>
+        <li><a href="{{ "/CV_study" | relative_url }}" class="{% if page.url contains "CV" %}active{% endif %}">👁️ CV_study.md</a></li>
+        <li><a href="{{ "/README" | relative_url }}">ℹ️ README.md</a></li>
+      </ul>
+    </nav>
+
+    <div class="status-bar">
+      <span>Branch: main</span>
+      <span>Ln 1, Col 1</span>
+    </div>
+  </aside>
+
+  <main class="content">
+    {{ content }}
+  </main>
+
+</body>
+</html>
