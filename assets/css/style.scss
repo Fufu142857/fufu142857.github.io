@@ -82,7 +82,7 @@ pre code {
 .portal-container {
   display: flex;
   height: 100vh;
-  width: 100%;
+  width: 100vh;
   overflow: hidden;
   position: relative; 
   background: #000;
@@ -98,18 +98,20 @@ pre code {
   
   font-family: 'Hack', sans-serif;
   font-weight: 700;
-  font-size: 12rem; 
+  font-size: 10rem; 
   line-height: 1;
   white-space: nowrap; 
   text-align: center;
   /* 视觉风格：半透明 + 混合模式 */
   color: #ffffff;
-  opacity: 0.1; /* 极度透明 */
+  opacity: 0.08; /* 极度透明 */
   pointer-events: none; /* 鼠标穿透 */
   
   /* 动画过渡 */
   transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   filter: blur(0px);
+
+  margin-top: -10px; 
 }
 
 /* 2. 传送门基础设定 */
@@ -140,10 +142,12 @@ pre code {
 }
 
 .portal h1 {
-  font-size: 4rem;
+  font-size: 5rem;
   margin: 0;
   letter-spacing: -2px;
   color: #fff;
+  white-space: nowrap;
+  max-width: 90%;
 }
 .portal p {
   font-family: 'Hack';
