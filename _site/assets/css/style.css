@@ -1,0 +1,82 @@
+@charset "UTF-8";
+@import url("https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css");
+* { box-sizing: border-box; }
+
+body { margin: 0; padding: 0; /* color: #eeeeee !important;*/ /* 灰白字 */ background-color: #1a1b1e !important; color: #cccccc !important; font-family: 'Hack', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif !important; /* letter-spacing: 0.02em; */ font-size: 20px; line-height: 1.8; /* 行高大一点 */ display: flex; min-height: 100vh; /* 让字体渲染更锐利 (仅限 MacOS) */ -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* 链接样式：极简白 */
+a { color: #ffffff !important; text-decoration: underline; text-underline-offset: 4px; }
+
+a:hover { color: #aaaaaa !important; text-decoration: none; }
+
+/* 代码块增强 */
+pre { background: #0d0d0d !important; /* 极深灰背景 */ border: 1px solid #333; padding: 15px; overflow-x: auto; /* 允许横向滚动 */ margin: 20px 0; }
+
+pre code { font-family: 'Hack', monospace; color: #a9b7c6; /* 默认代码灰 */ font-size: 13px; }
+
+/*
+.portal-container { display: flex; height: 100vh; width: 100%; overflow: hidden; background: #000000 !important;
+}
+
+.portal { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #222;  transition: all 0.5s; cursor: pointer; position: relative;
+}
+
+.portal:hover { background-color: #fff; color: #000; flex: 1.5; 
+}
+*/
+/* 传送门文字 */
+/*
+.portal h1 { font-size: 3rem; margin: 0; letter-spacing: -2px; }
+.portal p { font-size: 1rem; margin-top: 20px; font-family: 'Hack'; }
+.portal a { position: absolute; top:0; left:0; width:100%; height:100%; border:none; } 
+*/
+.portal-container { display: flex; height: 100vh; width: 100%; overflow: hidden; position: relative; background: #000; }
+
+/* 1. Fu_1/7 */
+.ghost-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); /* 绝对居中 */ z-index: 10; /* 浮在最上层 */ font-family: 'Hack', sans-serif; font-weight: 700; font-size: 10rem; line-height: 1; white-space: nowrap; text-align: center; /* 视觉风格：半透明 + 混合模式 */ color: #ffffff; opacity: 0.08; /* 极度透明 */ pointer-events: none; /* 鼠标穿透 */ /* 动画过渡 */ transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); filter: blur(0px); }
+
+/* 2. 传送门基础设定 */
+.portal { flex: 1; /* 默认对半开 */ display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; transition: all 0.5s ease; /* 丝滑变宽 */ border: 1px solid #111; /* 极暗的分割线 */ }
+
+/* 链接覆盖层 */
+.portal a { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; border: none; }
+
+/* 文字内容 */
+.portal-content { z-index: 2; text-align: center; transition: transform 0.4s ease; }
+
+.portal h1 { font-size: 5rem; margin: 0; letter-spacing: -2px; color: #fff; white-space: nowrap; max-width: 90%; }
+
+.portal p { font-family: 'Hack'; color: #333; margin-top: 10px; opacity: 0; /* 平时不显示命令，悬停才显示 */ transform: translateY(20px); transition: all 0.4s ease; }
+
+/*
+.portal-container:hover .ghost-watermark { opacity: 0;  transform: translate(-50%, -50%) scale(1.5);  filter: blur(10px); 
+}
+*/
+.death-side:hover { flex: 2; /* 变宽 */ background-color: #eeeeee; /* 变白 */ }
+
+.death-side:hover h1 { color: #000; }
+
+.death-side:hover p { color: #333; }
+
+.cv-side:hover { flex: 2; /* 变宽 */ background-color: #eeeeee; /* 变白 */ }
+
+.cv-side:hover h1 { color: #000; }
+
+.cv-side:hover p { color: #333; }
+
+/* 显示副标题命令 */
+.portal:hover p { opacity: 1; transform: translateY(0); }
+
+/* --- 内页：Vim 风格布局 --- */
+.terminal-layout { padding: 40px 10%; /* 左右留白 */ max-width: 1200px; margin: 0 auto; }
+
+.vim-status-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #111; color: #999; padding: 5px 20px; border-top: 1px solid #333; font-size: 12px; display: flex; justify-content: space-between; z-index: 999; }
+
+/* 模拟 ls -l 的文件列表样式 */
+.file-list { list-style: none; padding: 0; border: 1px dashed #333; padding: 20px; }
+
+.file-list li { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #111; }
+
+.file-list li:hover { background-color: #111; }
+
+.file-meta { color: #555; margin-right: 20px; }
