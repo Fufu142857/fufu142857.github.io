@@ -241,7 +241,7 @@ is_home: true
     { type: 'info', tag: 'USER', text: "fufu142857 | Fu_1/7", style: 'highlight' },
     { type: 'info', tag: 'ALIAS', text: "'Fufu' (Preferred) | 'Fu' (Self-Ref)" },
     { type: 'calc', tag: 'MATH', text: "ID_Signature: 1/7 ≈ 0.142857 (Cyclic)", style: 'keyword' },
-    { type: 'info', tag: 'Traits', text: "INTJ / Scorpio / Adult" },
+    { type: 'info', tag: 'Traits', text: "INTJ / Scorpio / Undergrad" },
     { type: 'info', tag: 'Major', text: "CS / Computer Vision" },
     { type: 'tool', tag: 'SKILL', text: "CLI, Vim [Status: GRINDING_EXP...]", style: 'cmd' },
     { type: 'scan', tag: 'Psyche_Scan', text: "Abnormal Psychology & Philosophy" },
