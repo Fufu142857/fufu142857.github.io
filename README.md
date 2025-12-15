@@ -5,12 +5,18 @@
 
 #### Warning:
 
-​	如果浏览器装了Vimium（神级插件！），需要切换到 `Insert Mode` 才能继续使用此网站的快捷键。
++ 如果浏览器装了Vimium（神级插件！），需要切换到 `Insert Mode` 才能继续使用此网站的快捷键。
 
 ## Display
 
-以下展示均为13英寸屏幕 + 最大化网页的显示效果
+以下展示均为13英寸屏幕 + 最大化页面的显示效果
 
-+ #### Cover![Cover](./figures/Cover.png)
++ #### Cover
 
-+ #### Index![Index1](./figures/Index1.png)
+  #### ![Cover](./figures/Cover.png)
+
++ #### Index
+
+  #### ![Index1](./figures/Index1.png)
+
+  ![Index2](./figures/Index2.png)
