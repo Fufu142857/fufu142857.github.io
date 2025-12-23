@@ -185,30 +185,166 @@ pre code {
   transform: translateY(0);
 }
 
-/* --- 内页：Vim 风格布局 --- */
-.terminal-layout {
-  padding: 40px 10%; /* 左右留白 */
-  max-width: 1200px;
-  margin: 0 auto;
+/* =========================================
+   VIM GUI (Compact Mode 26px)
+   ========================================= */
+.vim-gui {
+  background-color: #0d0d0d; 
+  color: #eeeeee; 
+  min-height: 100vh;
+  /* Top(26) + Bottom(26) + Cmd(26) */
+  padding-top: 26px;
+  padding-bottom: 52px; 
 }
 
-.vim-status-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #111;
-  color: #999;
-  padding: 5px 20px;
-  border-top: 1px solid #333;
-  font-size: 12px;
-  display: flex;
-  justify-content: space-between;
-  z-index: 999;
+/* --- Powerline Bar (26px) --- */
+.vim-bar {
+  position: fixed; left: 0; width: 100%; height: 26px;
+  display: flex; 
+  /* 字号 18px，正常粗细 */
+  font-size: 18px; font-weight: normal; line-height: 26px;
+  z-index: 100;
+  background: #0d0d0d;
+}
+.vim-bar.top { top: 0; }
+.vim-bar.bottom-status { bottom: 26px; }
+
+.item {
+  position: relative; 
+  color: #fff;
+  display: flex; align-items: center;
+  padding: 0 10px; /* 默认 */
+}
+/* 只有 bold 类加粗 */
+.item.bold { font-weight: 900; } 
+
+.spacer { flex: 1; background: #0d0d0d; z-index: 1; }
+
+/* Z-Index */
+.z10 { z-index: 20; } .z9 { z-index: 19; } .z8 { z-index: 18; } 
+.z7 { z-index: 17; } .z6 { z-index: 16; } .z5 { z-index: 15; } 
+.z4 { z-index: 14; } .z3 { z-index: 13; } .z2 { z-index: 12; }
+
+/* 颜色定义 */
+.bg-violet { background: #b362ff; color: #000; } 
+.bg-purple { background: #8a2be2; color: #fff; }
+.bg-blue   { background: #3b3b5e; color: #fff; }
+.bg-dark   { background: #1a1a1a; color: #ccc; }
+.bg-deep   { background: #111; color: #666; }
+.bg-void   { background: #0d0d0d; }
+.text-gray { color: #888; }
+
+/* --- 箭头魔法 (Height 26px -> Border 13px) --- */
+
+/* 1. 向右箭头 (左侧栏) */
+.arrow-right { 
+  margin-right: -13px; 
+}
+/* 左侧：保持离远 2 个字母 (35px) */
+.arrow-right + .arrow-right {
+  padding-left: 35px; 
 }
 
-/* 模拟 ls -l 的文件列表样式 */
-.file-list { list-style: none; padding: 0; border: 1px dashed #333; padding: 20px; }
-.file-list li { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #111; }
-.file-list li:hover { background-color: #111; }
-.file-meta { color: #555; margin-right: 20px; }
+.arrow-right::after {
+  content: ''; position: absolute; top: 0; right: -13px;
+  width: 0; height: 0;
+  border-top: 13px solid transparent;
+  border-bottom: 13px solid transparent;
+  border-left: 13px solid; 
+  border-left-color: inherit;
+  z-index: 20;
+}
+.bg-violet.arrow-right::after { border-left-color: #b362ff; }
+.bg-blue.arrow-right::after   { border-left-color: #3b3b5e; }
+.bg-dark.arrow-right::after   { border-left-color: #1a1a1a; }
+.bg-deep.arrow-right::after   { border-left-color: #111; }
+.bg-purple.arrow-right::after { border-left-color: #8a2be2; }
+
+
+/* 2. 向左箭头 (右侧栏) */
+.arrow-left { 
+  margin-left: -13px; 
+  /* 核心修复： */
+  /* 左边距 12px：让字紧贴左边的箭头，保持紧凑感 */
+  padding-left: 12px; 
+  /* 右边距 30px：给字后面留出足够空间，防止被下一个箭头盖住 */
+  padding-right: 30px; 
+}
+
+.arrow-left::before {
+  content: ''; position: absolute; top: 0; left: -13px;
+  width: 0; height: 0;
+  border-top: 13px solid transparent;
+  border-bottom: 13px solid transparent;
+  border-right: 13px solid;
+  border-right-color: inherit;
+  z-index: 20;
+}
+.bg-deep.arrow-left::before   { border-right-color: #111; }
+.bg-dark.arrow-left::before   { border-right-color: #1a1a1a; }
+.bg-blue.arrow-left::before   { border-right-color: #3b3b5e; }
+.bg-violet.arrow-left::before { border-right-color: #b362ff; }
+
+/* 左侧 Buffers 特殊箭头 */
+.arrow-left-void { padding-left: 35px; margin-left: -13px; }
+.arrow-left-void::before {
+  content: ''; position: absolute; top: 0; left: -13px;
+  width: 0; height: 0;
+  border-top: 13px solid transparent;
+  border-bottom: 13px solid transparent;
+  border-right: 13px solid #0d0d0d;
+}
+
+
+/* --- 底部命令行 (26px) --- */
+.vim-cmd-line {
+  position: fixed; bottom: 0; left: 0; width: 100%; height: 26px;
+  background-color: #000;
+  color: #fff;
+  /* 字体 18px，Normal */
+  font-family: 'Hack'; font-size: 18px; font-weight: normal; 
+  line-height: 26px;
+  padding: 0 10px;
+  z-index: 101;
+  border-top: 1px solid #222;
+}
+.blink-block { display: inline-block; width: 10px; height: 16px; background: #fff; animation: blink 1s infinite; vertical-align: sub; }
+.solid-block { display: inline-block; width: 10px; height: 16px; background: #666; vertical-align: sub; }
+@keyframes blink { 50% { opacity: 0; } }
+
+
+/* --- 正文与光标 --- */
+.vim-body { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; }
+
+#vim-cursor {
+  position: absolute; top: 0; left: 0;
+  background-color: #aaa; opacity: 0.5;
+  mix-blend-mode: difference;
+  pointer-events: none; z-index: 50;
+  transition: transform 0.05s ease-out;
+}
+
+.vim-content {
+  padding: 40px 60px;
+  font-size: 18px; line-height: 32px; 
+  color: #eeeeee;
+}
+.vim-block, p, h1, h2, h3, li { font-family: 'Hack', monospace; margin: 0 0 32px 0; padding: 0; }
+.vim-gutter { display: none; } 
+
+.vim-content h1 { font-size: 2.2em; color: #fff; font-weight: bold; border-bottom: 2px solid #b362ff; display: inline-block; }
+.token-purple { color: #b362ff; margin-right: 15px; }
+.vim-content h2 { color: #b362ff; margin-top: 60px; font-weight: bold; }
+.vim-content h3 { color: #9E5CF5; margin-top: 40px; }
+.vim-content a { color: #b362ff; text-decoration: underline; }
+.vim-content code { background: #222; padding: 2px 4px; border-radius: 2px; }
+.eof { color: #333; margin: 10px 0; font-weight: bold; }
+
+/* Telescope */
+#telescope-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+#telescope-overlay.hidden { display: none; }
+.telescope-box { width: 700px; background: #0d0d0d; border: 1px solid #b362ff; }
+.tele-header { padding: 15px; border-bottom: 1px solid #333; color: #b362ff; font-weight: bold; }
+#tele-list li { padding: 10px 15px; color: #ccc; cursor: pointer; }
+#tele-list li:hover { background: #222; color: #fff; border-left: 5px solid #b362ff; }
+

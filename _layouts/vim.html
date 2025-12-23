@@ -1,15 +1,8 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Death_Wiki | Fufu142857</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
-  <link rel="icon" type="image/png" href="/figures/favicon.png">
-</head>
-<body>
-  <div class="vim-gui" id="vim-container" tabindex="0">
+---
+layout: default
+---
+
+<div class="vim-gui" id="vim-container" tabindex="0">
 
   <div class="vim-bar top">
     <div class="item bg-purple arrow-right z5">1: death_studies.md</div>
@@ -21,11 +14,8 @@
   <div class="vim-body">
     <div id="vim-cursor"></div>
     <article class="vim-content" id="main-buffer">
-      <h1 class="vim-block"><span class="token-purple">#</span> Death_Wiki</h1>
-      <div id="text-layer"><h1 id="death">Death</h1>
-
-<p>会记录一些类似百度百科的东西，以及对名家看法的评论，并分享喜欢的关于死亡的创作。</p>
-</div>
+      <h1 class="vim-block"><span class="token-purple">#</span> {{ page.title }}</h1>
+      <div id="text-layer">{{ content }}</div>
       <div class="vim-block eof">~</div>
     </article>
   </div>
@@ -129,12 +119,12 @@
         if (currentNodeIdx < allTextNodes.length - 1) { currentNodeIdx++; currentOffset = 0; updateCursor(); } break;
       case 'k': 
         if (currentNodeIdx > 0) { currentNodeIdx--; currentOffset = 0; updateCursor(); } break;
-      case '0': window.location.href = "/"; break;
+      case '0': window.location.href = "{{ '/' | relative_url }}"; break;
       case 'm': e.preventDefault(); toggleMenu(true); break;
       case 'L': 
         if(e.shiftKey) {
-           if (window.location.href.includes('death')) window.location.href = "/CV_study/readme";
-           else window.location.href = "/death/readme";
+           if (window.location.href.includes('death')) window.location.href = "{{ '/CV_study/readme' | relative_url }}";
+           else window.location.href = "{{ '/death/readme' | relative_url }}";
         }
         break;
     }
@@ -162,6 +152,3 @@
     if(el) el.innerText = (window.scrollY===0)?'TOP':(per>=99?'BOT':per+'%');
   });
 </script>
-
-</body>
-</html>

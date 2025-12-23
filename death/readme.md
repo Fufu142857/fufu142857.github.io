@@ -1,6 +1,6 @@
 ---
-layout: default
-title: 死亡百科
+layout: vim
+title: Death_Wiki
 ---
 # Death
 

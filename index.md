@@ -11,16 +11,16 @@ is_home: true
       <div id="terminal-content"></div>
       <span class="cursor">_</span>
     </div>
-    
+
     <div class="terminal-footer">
       <span class="cmd-hint">[j] or [Enter] to Access | [k] or [0] to Return</span>
     </div>
   </div>
 
   <div id="portal-section">
-    
-    <div class="ghost-watermark">Fu_1/7</div>
 
+    <div class="ghost-watermark">Fu_1/7</div>
+    
     <div class="portal death-side">
       <div class="portal-content">
         <h1>DEATH</h1>
@@ -28,7 +28,7 @@ is_home: true
       </div>
       <a href="{{ "/death/readme" | relative_url }}" id="link-death"></a>
     </div>
-
+    
     <div class="portal cv-side">
       <div class="portal-content">
         <h1>CV_Lab</h1>
@@ -110,25 +110,25 @@ is_home: true
 
   /* 时间戳：深灰色 */
   .ts   { color: #44475a; margin-right: 15px; font-size: 0.8em; } 
-  
+
   /* 标签：紫罗兰 (Dracula Purple) */
   .tag  { color: #bd93f9; margin-right: 10px; font-weight: 500; } 
-  
+
   /* 普通内容回归纯白 */
   .content { color: #ffffff;  font-weight: 700;} 
-  
+
   /* 高亮：粉色 (Dracula Pink) */
   .highlight { color: #ff79c6; font-weight: bolder; } 
-  
+
   /* 关键字：橙色 (Dracula Orange) */
   .keyword   { color: #ffb86c; font-weight: bolder; }   
-  
+
   /* 命令：青色 (Dracula Cyan) */
   .cmd       { color: #8be9fd; font-weight: bolder; }   
-  
+
   /* 注释：灰蓝紫 (Dracula Comment) */
   .comment   { color: #6272a4; font-style: italic; font-weight: bold; }  
-  
+
   /* 链接样式 */
   .link-text { 
     color: #8be9fd; 
@@ -144,7 +144,7 @@ is_home: true
     animation: blink 1s step-end infinite; vertical-align: sub;
   }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-  
+
   .terminal-footer {
     position: absolute; bottom: 30px; left: 0;
     width: 100%; text-align: center;
@@ -164,7 +164,7 @@ is_home: true
     flex-direction: row; 
     position: relative;
   }
-  
+
   .portal {
     flex: 1; /* 默认各占一半 */
     height: 100%;    
@@ -246,15 +246,15 @@ is_home: true
     { type: 'tool', tag: 'SKILL', text: "CLI, Vim [Status: GRINDING_EXP...]", style: 'cmd' },
     { type: 'scan', tag: 'Psyche_Scan', text: "Abnormal Psychology & Philosophy" },
     { type: 'break' },
-
+    
     { type: 'sys', tag: 'MOUNT', text: "Mounting Active Partitions [2/2]:", style: 'keyword' },
     
     { type: 'vol', tag: 'VOL_1', text: "Death_Studies", style: 'highlight' },
     { type: 'txt', text: ">> 有关 Death 的讨论无比吸引我。我决定维护一个主页,去展示我学习到的有关死亡的科普百科、随想，以及我热爱的有关死亡的作品。" },
-
+    
     { type: 'vol', tag: 'VOL_2', text: "CV_Research", style: 'highlight' },
     { type: 'txt', text: ">> 我正在自学 Computer Vision 领域内内容，并有志向进行深入研究，在此记录我的自学笔记。" },
-
+    
     { type: 'break' },
     
     // 邮件点击唤起
@@ -263,7 +263,7 @@ is_home: true
     { type: 'break' },
     { type: 'sys', tag: 'READY', text: "System Ready. Interactive Mode Enabled." },
     { type: 'NAV', tag: 'Help', text: "Navigation Guide:" },
-    { type: 'help', text: "> J / Enter / Space :: Access System" },
+    { type: 'help', text: "> J / Enter :: Access System" },
     { type: 'help', text: "> K / 0 / GG :: Return to Root" },
     { type: 'break' },
     { type: 'sys', tag: '_', text: "Awaiting input..." }
@@ -285,9 +285,9 @@ is_home: true
     const log = logs[currentLine];
     const lineEl = document.createElement('div');
     lineEl.className = 'log-line';
-
+    
     let html = '';
-
+    
     if (log.type === 'header') {
       html = `<div class="ascii-art">${log.text}</div>`;
     } 
@@ -312,13 +312,13 @@ is_home: true
          html += `<span class="${contentClass}">${log.text}</span>`;
       }
     }
-
+    
     lineEl.innerHTML = html;
     terminalContent.appendChild(lineEl);
     
     const win = document.querySelector('.terminal-window');
     win.scrollTop = win.scrollHeight;
-
+    
     currentLine++;
     setTimeout(printLog, Math.random() * 100 + 150);
   }
@@ -345,7 +345,7 @@ is_home: true
         if (log.type === 'txt') contentClass = 'comment';
         if (log.type === 'help') contentClass = 'comment';
         if (log.type === 'link') contentClass = 'link-text';
-
+    
         if (log.type === 'link') {
            html += `<a href="${log.href}" class="${contentClass}">${log.text}</a>`;
         } else {
@@ -378,7 +378,7 @@ is_home: true
 
     if (['j', 'enter'].includes(k) && !inPortal) goPortal();
     if (['k', '0'].includes(k) && inPortal) goTerminal();
-
+    
     if (k === 'g') {
       const now = Date.now();
       if (now - lastG < 500 && inPortal) goTerminal();

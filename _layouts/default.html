@@ -3,31 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fufu142857 // Terminal</title>
+  <title>{{ page.title }} | Fufu142857</title>
   <link rel="stylesheet" href="{{ "/assets/css/style.css" | relative_url }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
   <link rel="icon" type="image/png" href="{{ "/figures/favicon.png" | relative_url }}">
 </head>
 <body>
-
-  {% if page.is_home %}
-    {{ content }}
-  {% else %}
-    <div class="terminal-layout">
-      <div style="margin-bottom: 40px; color: #666;">
-        <span>fufu@142857:</span>
-        <span style="color: #fff;">~/{{ page.url | replace:'/','' | replace:'.html','' }}</span>
-        <span>$ ls -la</span>
-      </div>
-
-      {{ content }}
-    </div>
-
-    <div class="vim-status-bar">
-      <span>-- NORMAL --</span>
-      <span>Use [Back] to return</span>
-      <span>Ln {{ page.content | size }}, Col 1</span>
-    </div>
-  {% endif %}
-
+  {{ content }}
 </body>
 </html>
