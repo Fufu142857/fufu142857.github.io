@@ -9,9 +9,159 @@
   <link rel="icon" type="image/png" href="/figures/favicon.png">
 </head>
 <body>
-  <h1 id="record">Record</h1>
+  <div class="vim-gui" id="vim-container" tabindex="0">
+
+  <div class="vim-bar top">
+    <div class="item bg-purple arrow-right z5">1: death_studies.md</div>
+    <div class="item bg-dark text-gray arrow-right z4">2: cv_research.md</div>
+    <div class="spacer bg-void z3"></div>
+    <div class="item bg-dark arrow-left-void z2">buffers</div>
+  </div>
+
+  <div class="vim-body">
+    <div id="vim-cursor"></div>
+    <article class="vim-content" id="main-buffer">
+      <h1 class="vim-block"><span class="token-purple">#</span> CV学习过程</h1>
+      <div id="text-layer"><h1 id="record">Record</h1>
 
 <p>有仪式感地督促自己学习.</p>
+</div>
+      <div class="vim-block eof">~</div>
+    </article>
+  </div>
+
+  <div class="vim-bar bottom-status">
+    <div class="item bg-violet arrow-right bold z10">NORMAL</div>
+    <div class="item bg-blue arrow-right z9">master*</div>
+    <div class="item bg-dark arrow-right z8">readme.md</div>
+    <div class="item bg-deep arrow-right readonly z7">[+]</div>
+
+    <div class="spacer bg-deep z6"></div>
+
+    <div class="item bg-deep arrow-left z7">utf-8</div>
+    <div class="item bg-dark arrow-left z8">markdown</div>
+    <div class="item bg-blue arrow-left z9" id="scroll-per">TOP</div>
+    <div class="item bg-violet arrow-left z10" id="cursor-pos">1:1</div>
+  </div>
+
+  <div class="vim-cmd-line">
+    fufu@142857:~/death/readme.md $ <span id="cmd-cursor" class="blink-block">_</span>
+  </div>
+
+  <div id="telescope-overlay" class="hidden">
+    <div class="telescope-box">
+      <div class="tele-header">Telescope > find_headers</div>
+      <ul id="tele-list"></ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let allTextNodes = []; 
+  let currentNodeIdx = 0; 
+  let currentOffset = 0;  
+  const cursor = document.getElementById('vim-cursor');
+  const posDisplay = document.getElementById('cursor-pos');
+  const cmdCursor = document.getElementById('cmd-cursor');
+
+  window.onload = function() {
+    const walker = document.createTreeWalker(document.getElementById('main-buffer'), NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while(node = walker.nextNode()) {
+      if(node.nodeValue.trim().length > 0) allTextNodes.push(node);
+    }
+    updateCursor();
+  }
+
+  function updateCursor() {
+    if (allTextNodes.length === 0) return;
+    const textNode = allTextNodes[currentNodeIdx];
+    const textLen = textNode.nodeValue.length;
+    if (currentOffset >= textLen) currentOffset = textLen - 1;
+    if (currentOffset < 0) currentOffset = 0;
+
+    const range = document.createRange();
+    try {
+      range.setStart(textNode, currentOffset);
+      range.setEnd(textNode, currentOffset + 1);
+    } catch(e) { return; }
+
+    const rect = range.getBoundingClientRect();
+    if (rect.width === 0) return;
+
+    const bodyRect = document.querySelector('.vim-body').getBoundingClientRect();
+    cursor.style.width = `${rect.width}px`;
+    cursor.style.height = `${rect.height}px`;
+    cursor.style.transform = `translate(${rect.left - bodyRect.left}px, ${rect.top - bodyRect.top}px)`;
+    
+    cursor.style.opacity = 0.5;
+
+    posDisplay.innerText = `${currentNodeIdx + 1}:${currentOffset + 1}`;
+    
+    if (rect.top > window.innerHeight - 80) window.scrollBy(0, 40);
+    if (rect.top < 80) window.scrollBy(0, -40);
+  }
+
+  function focusMainBuffer() {
+    cmdCursor.classList.remove('blink-block');
+    cmdCursor.classList.add('solid-block');
+    cmdCursor.style.opacity = 0.3; 
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    focusMainBuffer();
+
+    const textNode = allTextNodes[currentNodeIdx];
+    const len = textNode ? textNode.nodeValue.length : 0;
+
+    switch(e.key) {
+      case 'l': 
+        if (currentOffset < len - 1) currentOffset++;
+        else if (currentNodeIdx < allTextNodes.length - 1) { currentNodeIdx++; currentOffset = 0; }
+        updateCursor(); break;
+      case 'h': 
+        if (currentOffset > 0) currentOffset--;
+        else if (currentNodeIdx > 0) { currentNodeIdx--; currentOffset = allTextNodes[currentNodeIdx-1].nodeValue.length - 1; }
+        updateCursor(); break;
+      case 'j': 
+        if (currentNodeIdx < allTextNodes.length - 1) { currentNodeIdx++; currentOffset = 0; updateCursor(); } break;
+      case 'k': 
+        if (currentNodeIdx > 0) { currentNodeIdx--; currentOffset = 0; updateCursor(); } break;
+      case '0': window.location.href = "/"; break;
+      case 'm': e.preventDefault(); toggleMenu(true); break;
+      case 'L': 
+        if(e.shiftKey) {
+           if (window.location.href.includes('death')) window.location.href = "/CV_study/readme";
+           else window.location.href = "/death/readme";
+        }
+        break;
+    }
+  });
+
+  const overlay = document.getElementById('telescope-overlay');
+  function toggleMenu(state) { if(overlay) overlay.className = state ? '' : 'hidden'; }
+  document.addEventListener('keydown', e => { if(e.key==='Escape') toggleMenu(false); });
+  
+  const headers = document.querySelectorAll('.vim-content h2, .vim-content h3');
+  const list = document.getElementById('tele-list');
+  if(list && headers.length > 0) {
+    headers.forEach(h => {
+      let li = document.createElement('li');
+      li.innerText = h.innerText;
+      li.onclick = () => { h.scrollIntoView({behavior:'smooth'}); toggleMenu(false); }
+      list.appendChild(li);
+    });
+  }
+  
+  window.addEventListener('scroll', () => {
+    const docHeight = document.body.scrollHeight - window.innerHeight;
+    const per = Math.round((window.scrollY / docHeight) * 100);
+    const el = document.getElementById('scroll-per');
+    if(el) el.innerText = (window.scrollY===0)?'TOP':(per>=99?'BOT':per+'%');
+  });
+</script>
 
 </body>
 </html>

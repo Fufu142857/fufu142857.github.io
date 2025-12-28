@@ -1,15 +1,8 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Threshold of the Void | Fufu142857</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
-  <link rel="icon" type="image/png" href="/figures/favicon.png">
-</head>
-<body>
-  <style>
+---
+layout: default
+---
+
+<style>
   /* === 0. 全局变量 === */
   :root {
       --gold-bronze: #8f7e5f;
@@ -279,75 +272,12 @@
 
 <div id="vim-container">
   <div class="vim-header">
-      <span>Threshold of the Void</span>
+      <span>{{ page.title }}</span>
       <span>RO | UTF-8</span>
   </div>
   
   <div class="vim-editor" id="editor-view">
-      <blockquote>
-  <p>The truth is, Mitch, once you learn how to die, you learn how to live.</p>
-
-  <p>—— <a href="https://en.wikipedia.org/wiki/Tuesdays_with_Morrie">Tuesdays with Morrie</a></p>
-</blockquote>
-
-<h1 id="death">Death</h1>
-
-<h3 id="阅读须知">阅读须知</h3>
-
-<p>防止您没有看到进门前的系统规则，我们再重申一次：</p>
-
-<p>这里<strong>绝对不会有</strong>轻浮的评判，<strong>也不会有</strong>违背道德标准的内容。</p>
-
-<p>这里<strong>绝对没有</strong>任何令人不安的图片（如恐怖、血腥之类）。</p>
-
-<p>这里<strong>绝对没有</strong>干预生命的黑暗想法或者奇怪的指南。</p>
-
-<p>这里<strong>绝对没有</strong>我个人的负能量输出，保证全是客观视角。</p>
-
-<p>当我进行引用时，我会将出处标清楚，尊重著作权。</p>
-
-<p>所有的讨论都在合理范围内，强度也参考了已有的讨论，不会冒犯您的心情。</p>
-
-<hr />
-
-<h4 id="我记录的初心是明白了死才知道如何生活">我记录的初心是，明白了“死”，才知道如何生活。</h4>
-
-<h4 id="once-you-learn-how-to-die-you-learn-how-to-live">once you learn how to die, you learn how to live.</h4>
-
-<hr />
-
-<h3 id="计划收录">计划收录</h3>
-
-<p>关于死亡的文化与内涵</p>
-
-<p>科学如何定义终结</p>
-
-<p>死亡哲学与辩证思考</p>
-
-<p>那些描写死亡却照亮了生命的小说、戏剧与散文</p>
-
-<h3 id="页面操作">页面操作</h3>
-
-<p>在这个空间里，你可以像操作 <strong>vim</strong> 一样浏览。</p>
-
-<p><strong>注意：</strong>和浏览器的<code class="language-plaintext highlighter-rouge">vim</code>相关插件不兼容；功能还在持续更新。</p>
-
-<p>​</p>
-
-<p><code class="language-plaintext highlighter-rouge">0</code> : 回到首页(Home)</p>
-
-<p><code class="language-plaintext highlighter-rouge">&lt;Space&gt;</code> : 呼出/隐藏目录</p>
-
-<p><code class="language-plaintext highlighter-rouge">gg</code> : 跳转至顶部</p>
-
-<p><code class="language-plaintext highlighter-rouge">Shift+g</code> : 跳转至底部</p>
-
-<p><code class="language-plaintext highlighter-rouge">j / k</code> : 向下 / 向上 滚动</p>
-
-<p><code class="language-plaintext highlighter-rouge">h / l</code> : 上一篇 / 下一篇</p>
-
-<p><code class="language-plaintext highlighter-rouge">&lt;Enter&gt;</code> : 选中跳转</p>
-
+      {{ content }}
       <br><br><br>
       <div style="text-align:center; color:#444; font-size: 14px;">~ End of Buffer ~</div>
   </div>
@@ -358,7 +288,7 @@
       <span id="pct">TOP</span>
   </div>
   <div class="vim-cmd">
-      fufu@142857:~/death/readme.md $ <span class="blink-cursor"></span>
+      fufu@142857:~/death/{{ page.name }} $ <span class="blink-cursor"></span>
   </div>
 </div>
 
@@ -369,29 +299,15 @@
 
 <script>
 const fileList = [
-  
-  
+  {% assign death_files = site.pages | where_exp: "item", "item.path contains 'death/'" | sort: 'order' %}
+  {% for file in death_files %}
     {
-      "title": "Threshold of the Void",
-      "tname": "首页",
-      "url": "/death/readme.html",
-      "name": "readme.md"
-    },
-  
-    {
-      "title": "The Lexicon",
-      "tname": "称谓收录",
-      "url": "/death/alias.html",
-      "name": "alias.md"
-    },
-  
-    {
-      "title": "One truly  serious Philosophical Problem",
-      "tname": "关于自杀",
-      "url": "/death/suicide.html",
-      "name": "suicide.md"
-    }
-  
+      "title": "{{ file.title | default: file.name }}",
+      "tname": "{{ file.tname }}",
+      "url": "{{ file.url | relative_url }}",
+      "name": "{{ file.name }}"
+    }{% unless forloop.last %},{% endunless %}
+  {% endfor %}
 ];
 </script>
 
@@ -466,7 +382,7 @@ const fileList = [
           // --- 1. 全局快捷键 ---
           // [0] 回到首页 (Fufu系统顶层)
           if (e.key === '0') {
-              window.location.href = "/";
+              window.location.href = "{{ '/' | relative_url }}";
           }
           // [Space] 唤出/关闭目录
           if (e.code === 'Space') { 
@@ -550,6 +466,3 @@ const fileList = [
       document.getElementById('pct').innerText = (isNaN(p) ? 0 : p) + '%';
   });
 </script>
-
-</body>
-</html>
