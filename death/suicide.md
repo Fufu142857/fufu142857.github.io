@@ -1,6 +1,6 @@
 ---
 layout: memento
-title: One truly  serious Philosophical Problem
+title: One truly serious Philosophical Problem
 tname: 关于自杀
 order: 3
 ---
@@ -9,7 +9,7 @@ order: 3
 >
 > 真正严肃的哲学问题只有一个，那就是自杀。
 >
-> —— Albert Camus, *Le Mythe de Sisyph*
+> —— Albert Camus, [*Le Mythe de Sisyphe*](./classics#albert-camus-le-mythe-de-sisyphe)
 
 # Suicide
 

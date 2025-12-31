@@ -100,7 +100,6 @@ Object -> pinhole/lense -> film
      
      + **Corrections:** add 'doublet' lens of flint glass, etc. - 加透镜弥补色散现象
      
-  
   5. ##### 镜头畸变 Radial Distortion
   
      + 表现为直线变弯
@@ -115,10 +114,9 @@ Object -> pinhole/lense -> film
         + **Pincushion Distortion (枕形畸变)**，向内收缩
            <img src="/Users/a1-6/Library/Application Support/typora-user-images/image-20251225144831376.png" alt="image-20251225144831376" style="zoom:25%;" />
         
-  
-     + **Correction**
-  
-        在做几何视觉（如 3D 重建、SLAM）前，必须先进行 **Undistortion (去畸变)**。
+  + **Correction**
+     
+     在做几何视觉（如 3D 重建、SLAM）前，必须先进行 **Undistortion (去畸变)**。
   
   
   ****
@@ -158,3 +156,8 @@ difference？原理是什么
   <img src="/Users/a1-6/Library/Application Support/typora-user-images/image-20251225105637436.png" alt="image-20251225105637436" style="zoom:55%;" />
   实现不连续的 FOV
 
+
+
+## 3 Color
+
+> 
