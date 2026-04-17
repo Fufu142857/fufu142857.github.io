@@ -1,6 +1,6 @@
 ---
 layout: vim
-title: CV学习过程
+title: CG学习过程
 ---
 # Record
 

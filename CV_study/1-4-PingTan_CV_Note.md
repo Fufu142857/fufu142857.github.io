@@ -1,7 +1,6 @@
 # 谭平-Computer Visition
 
 > 此笔记根据谭平老师的计算机视觉课程而做。
->
 > 图片均来自谭平老师的PPT截图.
 
 
@@ -44,8 +43,8 @@ Object -> pinhole/lense -> film
        + 约束：只有满足方程的点才能成清晰的像。
      
        + **对焦：**Adjusting $d_i$ to choose the object in focus. 我们调整成像的位置去让像重新清晰起来。
-     
-  
+
+
   ***
   
   2. ##### **光圈与景深** (Aperture & Depth of Field)
@@ -93,6 +92,11 @@ Object -> pinhole/lense -> film
          | **Wide Angle (广角)** | **Small** (短焦) | **Large** (宽视角) | 视野广阔，物体较小，透视畸变明显[平行线相交, 近大远小] | 自动驾驶(需看清周围路况)、全景拼接、SLAM         |
          | **Telephoto (长焦)**  | **Large** (长焦) | **Small** (窄视角) | 视野狭窄，相当于望远镜，物体被放大[平行关系几乎不变]   | 远距离监控(车牌识别)、野生动物检测、细节纹理分析 |
   
+| Column1 | Column2 | Column3 | Column4 | Column5 |
+| --------------- | --------------- | --------------- | --------------- | --------------- |
+| Item1.1 | Item2.1 | Item3.1 | Item4.1 | Item5.1 |
+| Item1.2 | Item2.2 | Item3.2 | Item4.2 | Item5.2 |
+
   
   4. ##### 色散 Chromatic Aberration 
   
@@ -104,7 +108,7 @@ Object -> pinhole/lense -> film
   
      + 表现为直线变弯
   
-     + 这种畸变是**径向的 (Radial)**，即沿着半径方向对称。离图像中心越远，畸变越严重。
+     + 这种畸变是**径向的 (Radial)** ，即沿着半径方向对称。离图像中心越远，畸变越严重。
   
      + ##### 三种类型
   

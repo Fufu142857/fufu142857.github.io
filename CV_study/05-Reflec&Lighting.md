@@ -1,4 +1,4 @@
-### Reflectance & Lighting (反射与光照) 
+### Reflectance & Lighting 
 
 #### 一、 核心物理概念与基础假设
 
