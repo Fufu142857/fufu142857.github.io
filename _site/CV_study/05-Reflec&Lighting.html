@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reflectance &amp; Lighting | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="reflectance--lighting">Reflectance &amp; Lighting</h3>
+
+<h4 id="一-核心物理概念与基础假设">一、 核心物理概念与基础假设</h4>
+
+<ul>
+  <li><strong>Radiance (辐射亮度) 的决定因素</strong>: 我们最终在图像中观察到的像素强度 (Radiance) 主要取决于三个因素：<strong>Light source (光源)</strong> 的位置与强度、物体本身的 <strong>Reflectance (反射属性)</strong>（如材质是光滑还是粗糙），以及局部的 <strong>Orientation (表面朝向)</strong>。</li>
+  <li><strong>BRDF (双向反射分布函数)</strong>:
+    <ul>
+      <li><strong>定义</strong>: BRDF 全称是 Bidirectional Reflectance Distribution Function。顾名思义，它是关于入射方向 ($\omega_i$) 和出射方向 ($\omega_o$) 的一个函数，用来描述光打到物体表面后，能量是如何向不同方向分布并反射出去的。</li>
+      <li><strong>局部坐标系 (Local coordinate system)</strong>: 为了方便研究，BRDF 通常建立在一个以 <strong>Surface normal (表面法向)</strong> 为 Z 轴的局部坐标系中。</li>
+      <li><strong>PDF 特性</strong>: 如果固定一根入射光线，BRDF 在数学概念上就非常类似于定义在球面上的 <strong>Probability Distribution Function (PDF)</strong>，描述了反射能量的空间分布情况。</li>
+      <li><strong>简化假设</strong>: 计算机视觉中使用的绝大多数 BRDF 实际上是一种简化的模型，它假设反射是一种纯粹的 <strong>Local behavior (局部行为)</strong>。这意味着它忽略了真实世界中常见的复杂现象，例如会导致半透明效果的次表面散射 (如真实的人类皮肤)、荧光现象、<strong>Interreflection (多重反射)</strong> 以及远距离物体造成的 <strong>Cast shadow (投射阴影)</strong>。</li>
+    </ul>
+  </li>
+  <li><strong>Rendering Equation (渲染方程)</strong> 与 <strong>Radiometric Image Analysis (辐射度图像分析)</strong>:
+    <ul>
+      <li>渲染过程是已知 Shape、Lighting 和 BRDF 来生成像素的 Radiance。</li>
+      <li>计算机视觉主要研究其逆向问题 (Inverse problem)，即通过分析图像的 Radiance，来恢复局部的 Geometry (几何形状)、Lighting 或 Reflectance。为了让该问题可解，通常会施加如“点光源”、“无相互反射”等强烈假设。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="二-材质的反射模型-reflectance-models">二、 材质的反射模型 (Reflectance Models)</h4>
+
+<p>绝大多数物体的反射现象都由 <strong>Diffuse reflection (漫反射)</strong> 和 <strong>Specular reflection (镜面反射/高光)</strong> 两种成分叠加而成。这两种成分还可以通过偏振光 (Polarization) 的属性在物理上被分离出来。</p>
+
+<ul>
+  <li><strong>Diffuse reflection (漫反射)</strong>:
+    <ul>
+      <li>光线打入后极其均匀地散射到四面八方。漫反射通常呈现出物体本身的颜色。</li>
+      <li>其最大的特点是：不管你的视线方向如何移动，该像素看起来的亮度是一致的。大多数传统的计算机视觉算法 (如 Stereo Vision 或 Optical Flow) 都依赖于漫反射假设。</li>
+      <li><strong>Lambertian Model (朗伯模型)</strong>: 描述理想漫反射的数学模型。在该模型中，BRDF 是一个常数。最终观察到的能量取决于入射能量、BRDF常数以及 $\cos\theta$（或写为表面法向量与光源向量的点积 $n \cdot L$）。$\cos\theta$ 描述了光线倾斜照射在平面上时能量被摊开的衰减效果。</li>
+    </ul>
+  </li>
+  <li><strong>Specular reflection (镜面反射)</strong>:
+    <ul>
+      <li>光线集中反射在接近理想镜面反射的方向。稍微移动头部或相机，你就能看到高光斑在物体表面游走，因此它是强烈的视线相关 (View-dependent) 现象。高光的颜色主要取决于光源的颜色。</li>
+      <li><strong>Phong Model (冯氏模型)</strong>: 一种用来模拟高光衰减效果的经验数学模型。它规定能量最集中的方向是镜面反射方向 $R$。当视线 $V$ 偏离 $R$ 时，能量会按余弦夹角的 $n$ 次方呈幂级数迅速衰减。虽然它违背了严格的能量守恒定律，但能很好地渲染出高光质感。</li>
+    </ul>
+  </li>
+  <li><strong>Microfacet Theory (微面片理论)</strong>:
+    <ul>
+      <li>这是比上述经验模型更深层次的物理模型体系 (如 Cook-Torrance 模型等) 的基础。它假设物体表面由无数个远小于像素的 <strong>Microfacets (微观面片)</strong> 组成。</li>
+      <li>物体宏观的反射特性 (Aggregated behavior) 取决于两点：单个微面片是如何反光的 (如像微小镜子一样反射，或像完美的 Lambertian 面一样漫反射)，以及这些微面片的朝向分布 (Orientation distribution，例如遵循高斯分布)。这种理论能逼真地模拟诸如拉丝金属底部的复杂反光现象。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="三-brdf-capturing-反射属性的捕捉">三、 BRDF Capturing (反射属性的捕捉)</h4>
+
+<ul>
+  <li><strong>原理与局限</strong>: 如果固定了物体几何形状 (Geometry) 并标定了光源 (Lighting)，我们就能通过拍照片反推 BRDF。早期的做法是用机器臂在暗室 (Dark room) 中控制相机和点光源，对一块平板材料拍摄数小时来穷举入射和出射方向。</li>
+  <li><strong>加速采集</strong>: 使用一个已知形状的球体作为样本能大幅加速采集过程。因为球面同一时刻就包含了各个方向的 <strong>Surface normal</strong>，按一下快门等价于捕获了大量不同法向的样本点。</li>
+  <li><strong>数据表示</strong>: 采集到的数据要么存储为不可直接编辑且占用内存的 <strong>4D Table (四维表格)</strong>，要么通过高度非线性的 <strong>Model fitting (模型拟合)</strong> 提取出解析模型的参数 (如拟合出 Phong 模型或 Cook-Torrance 模型的系数)。</li>
+</ul>
+
+<h4 id="四-photometric-stereo-光度立体视觉">四、 Photometric Stereo (光度立体视觉)</h4>
+
+<p>与捕获 BRDF 相反，Photometric Stereo 的核心是通过已知的光源和材质，来捕获物体极其<strong>精细</strong>的形状起伏。</p>
+
+<ul>
+  <li><strong>基本解法</strong>: 固定 <strong>Camera (相机)</strong>，移动光源拍摄多张照片。假设相机为正交投影且光源为方向光 (Directional lighting)，基于 <strong>Lambertian Model</strong> 列出线性方程组 $I = \rho(n \cdot L)$。利用矩阵求逆操作，可以极其简单地直接解算出每个像素点上的 <strong>Surface normal (表面法向量)</strong> 和材质的反射率 (Albedo)。</li>
+  <li><strong>处理 Highlights 与 Shadows</strong>: 真实的图像中会存在不符合线性假设的高光和 <strong>Attached shadow (附着阴影)</strong>。一种粗暴但实用的解法是：控制光源移动的幅度足够大并多拍几十张照片，在每一个像素位置对像素值进行 Sorting (排序)。舍弃亮度排名靠后 (可能在阴影中) 和靠前 (可能是高光) 的部分观察值，只用中间的有效数据来做方程拟合。这样就可以得到 <strong>linear</strong> 的拟合，大大简化了问题。</li>
+  <li><strong>从 Normal 到 3D Shape</strong>: 获得稠密的法向量场后，必须通过积分来恢复深度的 <strong>Height field (高度场/Z)</strong>。但由于噪声存在，简单的沿 X/Y 轴盲目积分会产生阶梯状错误。工程上通用的聪明做法是将其转化为利用空间切线向量求解。即针对相邻点构造大量诸如 $N \cdot V = 0$ 的稀疏线性方程组，并利用 Conjugate gradient (共轭梯度法) 求解。</li>
+  <li><strong>特性与优缺点</strong>: Photometric Stereo 对物体的细节高频起伏捕捉能力惊人 (常用于微观表面甚至机械臂触觉传感器的重建)。但它的缺点是在全图积分过程中容易累积误差，产生 <strong>Low-frequency distortion (低频畸变)</strong>，导致整体宏观形状变弯：比如从上往下看一个台阶。</li>
+  <li><strong>Example-based Photometric Stereo</strong>: 不一定要用参数化模型。针对极其复杂的材质 (如反光复杂的布料)，如果不希望受限于参数化模型，可以在场景里直接摆放一个<strong>用相同材质制作的球体</strong>作为 <strong>Reference</strong>。系统通过对比目标物体像素亮度随光照变化的时间序列与参考球上各点的亮度序列，找到唯一的匹配点，进而直接拷贝其 <strong>Surface normal</strong>。甚至有可能材质是几种材料的线性叠加。</li>
+</ul>
+
+<h4 id="五-光源标定与估计-lighting-calibration--estimation">五、 光源标定与估计 (Lighting Calibration / Estimation)</h4>
+
+<ul>
+  <li><strong>使用 Mirror sphere (金属球)</strong>: 若想要用已知模型去捕获光，最传统的手段是在场景中放置一颗能发生理想镜面反射的金属球。
+    <ul>
+      <li>对于简单的定向光束，金属球表面会呈现极其突出的高光点。基于镜面反射原理 (入射角=反射角) 和球面上该点的法向，能直接算出光源的确切向量方向。</li>
+      <li><strong>Environment map (环境光)</strong>: 对于复杂的全景光照，金属球会将来自四面八方的光反射进镜头，形成一个球面函数。必须使用 <strong>HDR (高动态范围)</strong> 格式拍摄以应对悬殊的明暗反差。用捕获的 HDR 环境光去渲染虚拟物体，能达到以假乱真的电影级融合效果。</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h3 id="相关论文">相关论文</h3>
+
+<ul>
+  <li><strong>无标定球的光源估计 (Human Eyes/Faces)</strong>
+    <ul>
+      <li>在无法放置金属球的日常场景下，可以将人眼眼球当作高分辨率的镜面球体，通过眼球反光甚至能推断出屏幕上的画面内容</li>
+      <li>用人脸（静态图片）估计光源。也可以利用人类面部结构 (大体上是一个球)，利用深度学习分离其表面高光特征，并通过反卷积 (Deconvolution) 面部的 BRDF 属性，进而推算出打在人脸上的光照分布。</li>
+    </ul>
+  </li>
+</ul>
+
+</body>
+</html>

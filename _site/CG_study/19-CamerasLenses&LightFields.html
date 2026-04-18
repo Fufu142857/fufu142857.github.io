@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cameras, Lenses and Light Fields | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="cameras-lenses-and-light-fields">Cameras, Lenses and Light Fields</h3>
+
+<h4 id="一-成像基础与针孔相机-imaging--pinhole-camera">一、 成像基础与针孔相机 (Imaging &amp; Pinhole Camera)</h4>
+<p>计算机图形学中有两种获取图像的方式：一种是通过光栅化或光线追踪等算法来“合成 (Synthesis)”不存在的场景，另一种则是使用相机对真实世界进行“捕捉 (Capture)”。</p>
+<ul>
+  <li><strong>传感器记录的本质</strong>：相机内的传感器 (Sensor) 上任何一个感光点，收集的是来自四面八方的光能总和。因此，<strong>传感器记录的是 Irradiance (辐照度)，而不是带有单一方向性的 Radiance (辐射度)</strong>。</li>
+  <li><strong>针孔相机 (Pinhole Camera)</strong>：基于小孔成像原理，利用一个极小的孔来限制光线，使得空间中某一点反射出的光只有一束能穿过小孔打在感光平面上，从而成倒立的像。
+    <ul>
+      <li><strong>特性</strong>：针孔相机拍出的图像<strong>没有景深 (Depth of Field) 的概念</strong>，这意味着不论物体距离多远，拍出来的所有位置都是锐利且清晰的。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="二-视场-field-of-view-fov">二、 视场 (Field of View, FOV)</h4>
+<p>视场 (FOV) 决定了相机能够拍到多广的范围。</p>
+<ul>
+  <li><strong>计算公式</strong>：视场大小由传感器的尺寸（如高度 $h$）和焦距（$f$）共同决定。通过几何关系可知：$\text{FOV} = 2 \arctan(\frac{h}{2f})$。</li>
+  <li><strong>影响因素</strong>：
+    <ol>
+      <li><strong>传感器大小固定时</strong>：焦距越短，视场越大（即广角镜头 Wide Angle）；焦距越长，视场越窄（即长焦镜头 Telephoto）。</li>
+      <li><strong>焦距固定时</strong>：传感器尺寸越小，能捕捉到的视场也随之变小。</li>
+    </ol>
+  </li>
+  <li><strong>等效焦距</strong>：因为各类相机的传感器大小不一，为了统一衡量标准，业界通常将视场换算为以 <strong>35毫米格式胶片 (35mm-format film)</strong> 为基准的等效焦距。例如，手机虽然物理焦距极短，但会标注其等效于 35mm 相机的 28mm 广角焦距。</li>
+</ul>
+
+<h4 id="三-曝光的三大核心要素-exposure">三、 曝光的三大核心要素 (Exposure)</h4>
+<p>曝光 (Exposure) 决定了一张照片的明暗程度。其物理公式为 <strong>$H = T \times E$</strong>，即 曝光度 = 曝光时间 ($T$) $\times$ 传感器接收的辐照度 ($E$)。
+相机的曝光主要由以下三个参数共同控制：</p>
+
+<p><strong>1. 光圈大小 (Aperture) / F数 (F-Number / F-Stop)</strong></p>
+<ul>
+  <li><strong>作用</strong>：光圈是镜头内部控制进光量大小的机械开孔。</li>
+  <li><strong>F数 (F-Number, 记为 $N$)</strong>：在摄影中，我们用 F数来描述光圈大小。其严格数学定义为：<strong>焦距除以光圈的直径</strong>（即 $N = f/D$）。</li>
+  <li><strong>特性</strong>：<strong>F数越大，意味着光圈的真实开口直径越小</strong>（进光量越少）。例如，F/1.4 是大光圈，而 F/22 是极小的光圈。</li>
+</ul>
+
+<p><strong>2. 快门速度 (Shutter Speed)</strong></p>
+<ul>
+  <li><strong>作用</strong>：控制传感器允许光线进入的时间长短。</li>
+  <li><strong>副作用 - 运动模糊 (Motion Blur)</strong>：如果快门开启的时间较长，而场景中的物体发生了移动，传感器会记录下物体在这个时间段内的所有位置，从而产生运动模糊。
+    <ul>
+      <li><em>注</em>：运动模糊并不总是坏事。在时间维度上，运动模糊起到了类似反走样 (Anti-aliasing) 的作用，能让人眼感受到更加流畅的速度感。</li>
+    </ul>
+  </li>
+  <li><strong>副作用 - 果冻效应 (Rolling Shutter)</strong>：由于大部分机械或电子快门并非在瞬间完全打开，而是有一段扫描过程，当拍摄极高速运动的物体（如螺旋桨）时，画面不同位置记录的是不同时刻的图像，从而造成严重的形状扭曲。</li>
+</ul>
+
+<p><strong>3. 感光度 (ISO Gain)</strong></p>
+<ul>
+  <li><strong>作用</strong>：ISO 本质上是一个<strong>后期处理信号放大的过程</strong>。它直接将传感器接收到的光能信号乘以一个倍数（例如 ISO 200 的亮度是 ISO 100 的两倍）。</li>
+  <li><strong>副作用 - 噪点 (Noise)</strong>：由于信号在放大的同时也会等比例放大暗部的噪声信号（例如因光子数量不足带来的散粒噪声），因此在极暗环境下强行使用极高的 ISO 会导致画面出现非常明显的噪点，变得“脏”。</li>
+</ul>
+
+<h4 id="四-薄透镜近似模型-thin-lens-approximation">四、 薄透镜近似模型 (Thin Lens Approximation)</h4>
+<p>真实的相机镜头是由极其复杂的透镜组构成的，用来校正各种像差 (Aberrations)。在图形学中，我们采用简化的 <strong>理想薄透镜 (Ideal Thin Lens)</strong> 模型来进行计算：</p>
+<ul>
+  <li><strong>三大基本属性</strong>：
+    <ol>
+      <li>所有平行于主光轴入射的光线，穿过透镜后必定交于<strong>焦点 (Focal Point)</strong>。</li>
+      <li>所有穿过焦点入射的光线，穿过透镜后必定变成平行光。</li>
+      <li>穿过透镜中心的光线，方向不发生任何改变。
+        <ul>
+          <li><em>注</em>：我们假设该模型的焦距是可以任意改变的。</li>
+        </ul>
+      </li>
+    </ol>
+  </li>
+  <li><strong>高斯薄透镜公式 (The Thin Lens Equation)</strong>：
+令物距（物体到透镜的距离）为 $z_o$，像距（成像面到透镜的距离）为 $z_i$，焦距为 $f$。利用相似三角形原理，可以推导出它们满足完美的倒数关系：
+<strong>$\frac{1}{z_i} + \frac{1}{z_o} = \frac{1}{f}$</strong>。</li>
+</ul>
+
+<h4 id="五-散焦模糊与弥散圆-defocus-blur--circle-of-confusion">五、 散焦模糊与弥散圆 (Defocus Blur &amp; Circle of Confusion)</h4>
+<p>当物体并没有被放置在完美的聚焦平面上时，它在传感器上的成像就会变得模糊。</p>
+<ul>
+  <li><strong>弥散圆 (Circle of Confusion, CoC)</strong>：如果成像平面 (Sensor plane) 与光线完美汇聚的实际像面 (Focal plane) 存在一定距离，原本应该汇聚成一个点光束，在传感器上就会散开变成一个圆斑，这个圆斑就叫弥散圆。</li>
+  <li><strong>大小决定因素</strong>：通过相似三角形推导，弥散圆的直径大小与<strong>光圈的直径 ($A$) 成正比</strong>。</li>
+  <li><strong>结论</strong>：<strong>大光圈 (较小的 F数) 会产生极大的弥散圆，从而造成强烈的背景虚化 (散焦模糊)</strong>；反之，小光圈的弥散圆极小，拍出的画面整体更锐利。</li>
+</ul>
+
+<h4 id="六-光线追踪中的薄透镜模拟-ray-tracing-ideal-thin-lenses">六、 光线追踪中的薄透镜模拟 (Ray Tracing Ideal Thin Lenses)</h4>
+<p>我们可以在光线追踪渲染中引入透镜模型，从而渲染出带有物理真实感的景深虚化效果，具体算法步骤如下：</p>
+<ol>
+  <li>选定传感器的尺寸，以及透镜的焦距和光圈大小。</li>
+  <li>选定我们希望清晰对焦的物体平面深度（物距 $z_o$）。</li>
+  <li>利用薄透镜公式计算出传感器应该摆放的深度位置（像距 $z_i$）。</li>
+  <li>在传感器上选取一个像素点 $x’$，同时在<strong>透镜表面</strong>随机采样选取一个点 $x’’$。</li>
+  <li>连接像素点与透镜中心，求出这条光线如果无折射会打在对焦平面上的确切位置 $x’’’$。</li>
+  <li>那么真实的光线路径就是从 $x’’$ (透镜上的采样点) 射向 $x’’’$。追踪这条光线计算 Radiance 并记录到该像素上。</li>
+</ol>
+
+<h4 id="七-景深-depth-of-field-dof">七、 景深 (Depth of Field, DOF)</h4>
+<p>景深是指真实场景中，有一段特定的深度范围，这段范围内物体成在传感器上的弥散圆 (CoC) 足够小（通常不超过一个像素大小），人眼分辨不出模糊，认为它们是<strong>清晰</strong>的。</p>
+<ul>
+  <li><strong>景深的范围计算</strong>：景深等于清晰范围的最远深度减去最近深度（即 $DOF = D_F - D_N$）。</li>
+  <li><strong>景深与光圈的权衡</strong>：
+    <ul>
+      <li><strong>光圈越小</strong> (F数越大)：弥散圆极小，容差范围变大，因此<strong>景深越深 (更大范围都是清晰的)</strong>。</li>
+      <li>光圈越大 (F数越小)：景深越浅，产生明显的背景虚化效果。</li>
+    </ul>
+  </li>
+  <li>在摄影中，如果需要拍出强烈的浅景深，往往需要开大光圈，但这会导致进光量猛增；为了保持曝光正常，就必须缩短快门时间；如果缩短快门时间导致亮度不足，又不得不妥协去调节 ISO。因此，光圈、快门和感光度这三者在摄影与渲染中总是需要相互制约和权衡的。</li>
+</ul>
+
+</body>
+</html>

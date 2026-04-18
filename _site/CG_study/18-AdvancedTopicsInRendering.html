@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Topics in Rendering | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="advanced-topics-in-rendering">Advanced Topics in Rendering</h3>
+
+<h3 id="一-核心基础概念无偏与有偏-biased-vs-unbiased">一、 核心基础概念：无偏与有偏 (Biased vs. Unbiased)</h3>
+<p>在学习蒙特卡洛积分的各种高级解法前，必须先厘清统计学上的两个重要概念：</p>
+<ul>
+  <li><strong>无偏估计 (Unbiased)</strong>：不论你使用多少个样本来进行蒙特卡洛估计，算出来的期望值永远等于真实的正确值，没有任何系统性偏差。</li>
+  <li><strong>有偏估计 (Biased)</strong>：算出来的期望值与真实值不一致。在渲染图像的表现上，有偏通常意味着结果会有些<strong>模糊 (Blurry)</strong>。</li>
+  <li><strong>一致性 (Consistent)</strong>：这是有偏估计中的一种特殊且良好的情况。它虽然有偏，但<strong>当样本数量趋于无穷大时，其期望值会逐渐收敛到正确值</strong>。在渲染中，表现为只要样本足够多，模糊感就会消失并得到正确图像。</li>
+</ul>
+
+<h3 id="二-高级光线传播-advanced-light-transport">二、 高级光线传播 (Advanced Light Transport)</h3>
+
+<h4 id="1-无偏的光线传播方法-unbiased-methods">1. 无偏的光线传播方法 (Unbiased Methods)</h4>
+<ul>
+  <li><strong>双向路径追踪 (Bidirectional Path Tracing, BDPT)</strong>：
+    <ul>
+      <li><strong>原理</strong>：标准路径追踪只从相机出发打出光线，而 BDPT 会同时从光源和相机各自打出一系列半路径 (sub-paths)，然后将两边的端点连接起来形成完整的传播路径。</li>
+      <li><strong>优点</strong>：特别适合处理<strong>光源一侧光线传播非常复杂</strong>的场景（例如场景中绝大部分是被间接光照亮的情况）。</li>
+      <li><strong>缺点</strong>：实现起来极其困难，且运行速度较慢。</li>
+    </ul>
+  </li>
+  <li><strong>Metropolis 光线传播 (Metropolis Light Transport, MLT)</strong>：
+    <ul>
+      <li><strong>原理</strong>：应用了统计学中的马尔可夫链 (Markov Chain) 蒙特卡洛方法。它能够在你找到的一条有效路径周围，通过局部微小的扰动 (Locally perturb) 生成一系列相似的新路径。</li>
+      <li><strong>优点</strong>：极度擅长探索<strong>非常困难的局部光路</strong>。例如光线穿过水面打在池底再穿出水面的焦散现象，这种包含镜面反射-漫反射-镜面反射的 <strong>SDS 路径</strong>用普通路径追踪极难找到，但 MLT 可以很好地处理。</li>
+      <li><strong>缺点</strong>：很难估计其收敛速度；由于所有操作都是局部的，不同像素的收敛速度不一致，导致画面看起来不均匀且显得“脏” (dirty)。正因如此，MLT 通常不用于渲染动画，否则会产生严重的画面抖动。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="2-有偏的光线传播方法-biased-methods">2. 有偏的光线传播方法 (Biased Methods)</h4>
+<ul>
+  <li><strong>光子映射 (Photon Mapping)</strong>：
+    <ul>
+      <li><strong>特点</strong>：一种有偏但<strong>一致 (Consistent)</strong> 的方法，极其擅长渲染 <strong>焦散 (Caustics)</strong> 以及 SDS 路径。</li>
+      <li><strong>两阶段原理</strong>：
+        <ol>
+          <li><strong>光子追踪 (Photon Tracing)</strong>：从光源发射大量光子，让它们在场景中反射、折射，直到打到漫反射 (Diffuse) 表面上并记录下来。</li>
+          <li><strong>光子收集 (Photon Collection)</strong>：从相机出发打出子路径，直到打到漫反射表面。</li>
+        </ol>
+      </li>
+      <li><strong>密度估计 (Local density estimation)</strong>：在第二步中，着色点会寻找周围最近的 N 个光子，计算它们覆盖的表面积来求出光子密度（光子越集中，表面越亮）。由于是用一个有限范围 $ΔA$ 来近似微积分中的极小面积 $dA$，所以它是<strong>有偏的 (会导致模糊)</strong>；但当发射的光子趋于无穷多时，这 N 个光子所占的面积就会无限趋近于极小面积 $dA$，因此它是<strong>一致的</strong>。</li>
+    </ul>
+  </li>
+  <li><strong>顶点连接与合并 (Vertex Connection and Merging, VCM)</strong>：
+    <ul>
+      <li><strong>原理</strong>：将 BDPT 和光子映射结合在一起的思路。</li>
+      <li>在 BDPT 中，如果来自光源和相机的两条半路径端点无法直接相连，但它们落在同一个面上且非常接近，VCM 就会利用光子映射的局部合并思想，把它们当作光子聚集来处理，从而避免浪费这些计算过的路径。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="3-即时辐射度算法-instant-radiosity--vpl">3. 即时辐射度算法 (Instant Radiosity / VPL)</h4>
+<ul>
+  <li><strong>原理</strong>：也被称为 Many-light (多光源) 方法。它从光源打出光线，光线停住的表面都会被当作一个新的 <strong>虚拟点光源 (Virtual Point Light, VPL)</strong>，然后用这些海量的 VPL 去照亮场景，以此来近似计算间接光照。</li>
+  <li><strong>优缺点</strong>：在漫反射场景中渲染速度快且效果极好；但无法处理光泽 (Glossy) 材质，并且当 VPL 距离着色点极近时，由于距离平方倒数项的存在，会导致画面出现莫名其妙的极亮斑点 (Spikes)。</li>
+</ul>
+
+<hr />
+
+<h3 id="三-高级外观建模-advanced-appearance-modeling">三、 高级外观建模 (Advanced Appearance Modeling)</h3>
+
+<h4 id="1-非表面模型-non-surface-models">1. 非表面模型 (Non-Surface Models)</h4>
+<ul>
+  <li><strong>参与介质 / 散射介质 (Participating Media)</strong>：
+    <ul>
+      <li>用来描述云、雾等体积形态的材质。</li>
+      <li>光线在穿过介质时，不仅会被<strong>吸收 (Absorption)</strong> 减弱能量，还会撞击介质中的微粒而被<strong>散射 (Scattering)</strong> 到其他方向，或者接收来自其他方向的散射光。</li>
+      <li>利用 <strong>相位函数 (Phase Function)</strong> 来描述空间中某一点光线向各个方向散射的角分布规律（类似于表面模型中的 BRDF）。</li>
+    </ul>
+  </li>
+  <li><strong>毛发与纤维 (Hair / Fur / Fiber)</strong>：
+    <ul>
+      <li><strong>Kajiya-Kay Model</strong>：早期的简单模型，将毛发视为圆柱体，光线打上后会散射出一个圆锥形的高光。</li>
+      <li><strong>Marschner Model</strong>：广泛用于人类头发。将头发视为由表皮 (Cuticle) 和皮质 (Cortex) 组成的玻璃状圆柱。模拟了光线的 R（直接反射）、TT（两次穿透）和 TRT（穿入并在内壁反射后穿出）三种相互作用，能极好地表现头发中的无色和有色高光。</li>
+      <li><strong>双层圆柱模型 (Double Cylinder Model)</strong>：由于动物毛发 (Fur) 与人类头发结构不同，其拥有一个极其巨大的 <strong>髓质 (Medulla)</strong>，光线进入髓质会发生强烈的散射。通过将髓质作为额外的圆柱层并引入散射分量，能完美还原动物毛发粗糙且饱和度高的视觉表现，该技术被《猩球崛起》和《狮子王》等电影广泛采用。</li>
+    </ul>
+  </li>
+  <li><strong>颗粒材质 (Granular Material)</strong>：
+    <ul>
+      <li>用来表现香料、沙子等由海量微小颗粒组成的材质。由于显式渲染每一粒沙子计算量惊人，工业界通常采用程序化的方式来优化。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="2-表面模型-surface-models">2. 表面模型 (Surface Models)</h4>
+<ul>
+  <li><strong>半透明材质与次表面散射 (Translucent Material / BSSRDF)</strong>：
+    <ul>
+      <li>玉石、水母、牛奶和人类皮肤等都属于半透明材质。它们的特性是光线可以从表面一点射入，在内部发生大量散射后，从表面的<strong>另一个点</strong>射出，这被称为<strong>次表面散射 (Subsurface Scattering)</strong>。</li>
+      <li>这违反了传统 BRDF 假设光线在同一点进出的设定。因此引入了对 BRDF 概念延伸的 <strong>BSSRDF</strong>。在计算时，不仅需要对入射方向进行积分，还要对周围表面的入射面积进行积分。</li>
+      <li>渲染近似方法：<strong>偶极子近似 (Dipole Approximation)</strong>。它巧妙地在着色点表面内侧和外侧各放置一个虚拟点光源，利用这两个光源的照射来近似表现光线在材质内部的漫开效果。</li>
+    </ul>
+  </li>
+  <li><strong>布料 (Cloth)</strong>：
+    <ul>
+      <li>布料本质上是由极其微小的纤维 (Fibers) 经过多级缠绕形成股 (Ply)、再形成为线 (Yarn)，最终经过机织或针织 (Woven or knitted) 而成。</li>
+      <li>渲染方法根据精度要求分为三种：
+        <ol>
+          <li>视作表面，利用特定的 BRDF 渲染。</li>
+          <li>视作空间体积，利用散射介质 (Participating Media) 的方式渲染。</li>
+          <li>最暴力的做法：将每一根纤维当作类似于头发的曲线，显式地逐一渲染。</li>
+        </ol>
+      </li>
+    </ul>
+  </li>
+  <li><strong>包含细节的微表面模型 (Detailed Material)</strong>：
+    <ul>
+      <li>真实世界的物体表面总是不完美的（有划痕、凹凸），而传统的微表面 (Microfacet) 模型因为采用了简单的统计学正态分布，渲染出来的结果往往像塑料一样过于平滑完美。</li>
+      <li>如果使用极高分辨率的法线贴图来定义细节，一个像素可能会覆盖海量的微表面。这些微表面的法线分布不再是一个平滑的高斯钟形曲线，而是表现为高度复杂的离散分布特征（<strong>p-NDF</strong>）。将其引入渲染，能展现出极度真实的拉丝金属、汽车亮片和车漆划痕细节。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="3-波动光学现象-wave-optics">3. 波动光学现象 (Wave Optics)</h4>
+<ul>
+  <li>当表面的物理细节小到<strong>与光线的波长相当</strong>时，几何光学（假设光沿直线传播）就不再适用了。此时必须考虑光作为波发生的干涉 (Interference) 和衍射现象。</li>
+  <li>这能够解释为什么在小光源照射下，看似平滑的金属表面、光盘背面或手机屏幕会折射出<strong>彩色的、不连续的衍射斑纹</strong>。</li>
+</ul>
+
+<h4 id="4-程序化外观-procedural-appearance">4. 程序化外观 (Procedural Appearance)</h4>
+<ul>
+  <li>为了避免存储占据海量内存的三维纹理（例如你想切开一块木头并看到内部连贯的年轮），我们不预先生成贴图，而是使用<strong>随时查询的数学函数</strong>。</li>
+  <li>这类函数被称为 <strong>噪声函数 (Noise Function)</strong>（如最经典的 Perlin Noise），给定空间中的任一三维坐标 (x,y,z)，它就能立刻返回一个随机但连续的值。</li>
+  <li>通过对噪声函数的值进行后期阈值处理或数学映射，可以零内存成本地生成极其复杂的生锈纹理、大范围地形、海面波浪甚至是逼真的三维木材内部结构。</li>
+</ul>
+
+</body>
+</html>

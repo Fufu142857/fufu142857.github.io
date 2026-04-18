@@ -12,9 +12,8 @@
   <h1 id="谭平-computer-visition">谭平-Computer Visition</h1>
 
 <blockquote>
-  <p>此笔记根据谭平老师的计算机视觉课程而做。</p>
-
-  <p>图片均来自谭平老师的PPT截图.</p>
+  <p>此笔记根据谭平老师的计算机视觉课程而做。
+图片均来自谭平老师的PPT截图.</p>
 </blockquote>
 
 <h2 id="1-introduction">1 Introduction</h2>
@@ -201,6 +200,37 @@
       </li>
     </ul>
   </li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th>Column1</th>
+      <th>Column2</th>
+      <th>Column3</th>
+      <th>Column4</th>
+      <th>Column5</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Item1.1</td>
+      <td>Item2.1</td>
+      <td>Item3.1</td>
+      <td>Item4.1</td>
+      <td>Item5.1</td>
+    </tr>
+    <tr>
+      <td>Item1.2</td>
+      <td>Item2.2</td>
+      <td>Item3.2</td>
+      <td>Item4.2</td>
+      <td>Item5.2</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
   <li>
     <h5 id="色散-chromatic-aberration">色散 Chromatic Aberration</h5>
 
@@ -218,7 +248,7 @@
         <p>表现为直线变弯</p>
       </li>
       <li>
-        <p>这种畸变是<strong>径向的 (Radial)</strong>，即沿着半径方向对称。离图像中心越远，畸变越严重。</p>
+        <p>这种畸变是<strong>径向的 (Radial)</strong> ，即沿着半径方向对称。离图像中心越远，畸变越严重。</p>
       </li>
       <li>
         <h5 id="三种类型">三种类型</h5>
@@ -297,6 +327,152 @@
 <blockquote>
 
 </blockquote>
+
+<p><img src="/Users/a1-6/Library/Application Support/typora-user-images/image-20260305204137949.png" alt="image-20260305204137949" /></p>
+
+<p>给到颜色，能够通过函数计算出来</p>
+
+<p>颜色空间</p>
+
+<ul>
+  <li>
+    <p>Linear transform from XYZ to sRGB</p>
+  </li>
+  <li>
+    <h4 id="yuv-color-space">YUV Color Space</h4>
+
+    <blockquote>
+      <p>帮助做视频和图像的压缩</p>
+    </blockquote>
+
+    <ul>
+      <li>
+        <p>Y 亮度值</p>
+      </li>
+      <li>
+        <p>U和V 整体描述了颜色</p>
+
+        <blockquote>
+          <p>人眼对 U 和 V 不敏感，可以把这个压缩得很厉害。</p>
+        </blockquote>
+      </li>
+    </ul>
+  </li>
+  <li>加法用RGB，减法（比如滤光片）CMY
+    <ul>
+      <li>RGB 比 CMY 还原颜色更好</li>
+      <li>CMY 光更多，性价比更高</li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="/Users/a1-6/Library/Application Support/typora-user-images/image-20260305210135150.png" alt="image-20260305210135150" />
+Demosaicing</p>
+
+<p>人眼对绿光更敏感</p>
+
+<p><img src="/Users/a1-6/Library/Application Support/typora-user-images/image-20260305211242554.png" alt="image-20260305211242554" /></p>
+
+<p>多光谱图像应用</p>
+
+<blockquote>
+  <p>普通 RGB 相机，引入其他光谱频段</p>
+</blockquote>
+
+<ul>
+  <li>
+    <p>光对不同皮肤的反射不一样</p>
+
+    <p>不同波长的光对皮肤的穿透深度和吸收率完全不同。</p>
+  </li>
+  <li>
+    <p>墨迹的反射率也不一样就能还原</p>
+  </li>
+</ul>
+
+<h2 id="3-radiometric-calibration--hdr">3 Radiometric Calibration &amp; HDR</h2>
+
+<blockquote>
+  <p>光的强度 -&gt; 像素值（数字表示）</p>
+</blockquote>
+
+<ul>
+  <li>
+    <h4 id="preliminary-terms">Preliminary Terms</h4>
+
+    <ul>
+      <li>
+        <p>Radiance</p>
+
+        <p>单位面积、单位时间、单位空间角 发出的能量</p>
+      </li>
+      <li>
+        <p>Irradiance</p>
+
+        <p>单位面积、单位时间 接收到的能量</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <h4 id="radiometric-calibration">Radiometric Calibration</h4>
+
+    <ol>
+      <li>
+        <h5 id="核心前提-相机的非线性响应">核心前提： 相机的非线性响应</h5>
+      </li>
+    </ol>
+
+    <ul>
+      <li>
+        <p><strong>“Cameras have non-linear responses in terms of exposure”</strong>：</p>
+
+        <p>现实中，相机的传感器接收到的光子数量（曝光量）与最终输出的图像像素值（0-255）之间，并不是简单的正比例（线性）关系。为了压缩动态范围或让照片色彩更符合人眼的视觉习惯，相机硬件或内部软件会对收集到的光信号施加一个非线性的数学变换。</p>
+      </li>
+    </ul>
+
+    <h5 id="2-公式解析图像的生成过程">2. 公式解析：图像的生成过程</h5>
+
+    <p>PPT给出了相机成像的数学模型：</p>
+
+\[Z_{ij} = f(E_i * \Delta t_j)\]
+
+    <ul>
+      <li>$E_i$：第 $i$ 个像素所接收到的真实<strong>辐射照度（Irradiance）</strong>，代表现实世界中该点的客观光强度。</li>
+      <li>$\Delta t_j$：第 $j$ 次拍摄时的<strong>快门时间（Shutter speed）</strong>。</li>
+      <li>$E_i * \Delta t_j$：这两者相乘即为<strong>曝光量（Exposure）</strong>，也就是传感器在快门开启期间收集到的总光能。</li>
+      <li>$f$：<strong>相机响应函数（Camera Response Function, CRF）</strong>。这就是前面提到的那个未知的“非线性处理过程”。</li>
+      <li>$Z_{ij}$：最终图像文件里存储的数字<strong>像素值</strong>（通常是 0 到 255 之间的整数）。</li>
+    </ul>
+
+    <h5 id="3-辐射标定的目的">3. 辐射标定的目的</h5>
+
+    <ul>
+      <li>
+        <p><strong>“Radiometric calibration amounts to recover the response function”</strong>：</p>
+
+        <p>辐射标定的根本任务，就是通过算法<strong>求解出这个未知的响应函数 $f$</strong>。</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <h4 id="hdr-high-dynamic-range">HDR High Dynamic Range</h4>
+
+    <p>To capture both <strong>dark</strong> and <strong>bright</strong> areas in an image.</p>
+  </li>
+  <li>
+    <h4 id="algorithm-to-find-the-response-function">Algorithm to find the response function</h4>
+
+\[\log Exposure = \log Irradiance + \log \Delta t\]
+
+    <p><img src="/Users/a1-6/Library/Application Support/typora-user-images/image-20260306132617853.png" alt="image-20260306132617853" /></p>
+
+    <p>通过物理知识写出公式，经常要加 smoothness 约束</p>
+  </li>
+</ul>
+
+<h2 id="4-reflaction-and-lighting">4 Reflaction and lighting</h2>
+
+<p><img src="/Users/a1-6/Library/Application Support/typora-user-images/image-20260309132039837.png" alt="image-20260309132039837" /></p>
 
 </body>
 </html>

@@ -35,7 +35,7 @@ layout: default
   </div>
 
   <div class="vim-cmd-line">
-    fufu@142857:~/death/readme.md $ <span id="cmd-cursor" class="blink-block">_</span>
+    fufu@142857:~{{ page.url | replace: ".html", ".md" }} $ <span id="cmd-cursor" class="blink-block">_</span>
   </div>
 
   <div id="telescope-overlay" class="hidden">
@@ -45,110 +45,156 @@ layout: default
     </div>
   </div>
 
+  <div id="file-menu-overlay" class="hidden">
+    <div class="telescope-box" style="width: 600px; max-width: 90vw;">
+      <div class="tele-header">Directory > files</div>
+      <ul id="file-menu-list"></ul>
+    </div>
+  </div>
+
 </div>
 
-<script>
-  let allTextNodes = []; 
-  let currentNodeIdx = 0; 
-  let currentOffset = 0;  
-  const cursor = document.getElementById('vim-cursor');
-  const posDisplay = document.getElementById('cursor-pos');
-  const cmdCursor = document.getElementById('cmd-cursor');
-
-  window.onload = function() {
-    const walker = document.createTreeWalker(document.getElementById('main-buffer'), NodeFilter.SHOW_TEXT, null, false);
-    let node;
-    while(node = walker.nextNode()) {
-      if(node.nodeValue.trim().length > 0) allTextNodes.push(node);
-    }
-    updateCursor();
-  }
-
-  function updateCursor() {
-    if (allTextNodes.length === 0) return;
-    const textNode = allTextNodes[currentNodeIdx];
-    const textLen = textNode.nodeValue.length;
-    if (currentOffset >= textLen) currentOffset = textLen - 1;
-    if (currentOffset < 0) currentOffset = 0;
-
-    const range = document.createRange();
-    try {
-      range.setStart(textNode, currentOffset);
-      range.setEnd(textNode, currentOffset + 1);
-    } catch(e) { return; }
-
-    const rect = range.getBoundingClientRect();
-    if (rect.width === 0) return;
-
-    const bodyRect = document.querySelector('.vim-body').getBoundingClientRect();
-    cursor.style.width = `${rect.width}px`;
-    cursor.style.height = `${rect.height}px`;
-    cursor.style.transform = `translate(${rect.left - bodyRect.left}px, ${rect.top - bodyRect.top}px)`;
-    
-    cursor.style.opacity = 0.5;
-
-    posDisplay.innerText = `${currentNodeIdx + 1}:${currentOffset + 1}`;
-    
-    if (rect.top > window.innerHeight - 80) window.scrollBy(0, 40);
-    if (rect.top < 80) window.scrollBy(0, -40);
-  }
-
-  function focusMainBuffer() {
-    cmdCursor.classList.remove('blink-block');
-    cmdCursor.classList.add('solid-block');
-    cmdCursor.style.opacity = 0.3; 
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    focusMainBuffer();
-
-    const textNode = allTextNodes[currentNodeIdx];
-    const len = textNode ? textNode.nodeValue.length : 0;
-
-    switch(e.key) {
-      case 'l': 
-        if (currentOffset < len - 1) currentOffset++;
-        else if (currentNodeIdx < allTextNodes.length - 1) { currentNodeIdx++; currentOffset = 0; }
-        updateCursor(); break;
-      case 'h': 
-        if (currentOffset > 0) currentOffset--;
-        else if (currentNodeIdx > 0) { currentNodeIdx--; currentOffset = allTextNodes[currentNodeIdx-1].nodeValue.length - 1; }
-        updateCursor(); break;
-      case 'j': 
-        if (currentNodeIdx < allTextNodes.length - 1) { currentNodeIdx++; currentOffset = 0; updateCursor(); } break;
-      case 'k': 
-        if (currentNodeIdx > 0) { currentNodeIdx--; currentOffset = 0; updateCursor(); } break;
-      case '0': window.location.href = "{{ '/' | relative_url }}"; break;
-      case 'm': e.preventDefault(); toggleMenu(true); break;
-      case 'L': 
-        if(e.shiftKey) {
-           if (window.location.href.includes('death')) window.location.href = "{{ '/CV_study/readme' | relative_url }}";
-           else window.location.href = "{{ '/death/readme' | relative_url }}";
-        }
-        break;
-    }
-  });
-
-  const overlay = document.getElementById('telescope-overlay');
-  function toggleMenu(state) { if(overlay) overlay.className = state ? '' : 'hidden'; }
-  document.addEventListener('keydown', e => { if(e.key==='Escape') toggleMenu(false); });
-  
-  const headers = document.querySelectorAll('.vim-content h2, .vim-content h3');
-  const list = document.getElementById('tele-list');
-  if(list && headers.length > 0) {
-    headers.forEach(h => {
-      let li = document.createElement('li');
-      li.innerText = h.innerText;
-      li.onclick = () => { h.scrollIntoView({behavior:'smooth'}); toggleMenu(false); }
-      list.appendChild(li);
-    });
-  }
-  
-  window.addEventListener('scroll', () => {
-    const docHeight = document.body.scrollHeight - window.innerHeight;
-    const per = Math.round((window.scrollY / docHeight) * 100);
-    const el = document.getElementById('scroll-per');
-    if(el) el.innerText = (window.scrollY===0)?'TOP':(per>=99?'BOT':per+'%');
-  });
+<script markdown="0">
+const cvList = [
+{% assign cv_pages = site.pages | where_exp: "item", "item.path contains 'CV_study/'" | sort: 'name' %}{% for file in cv_pages %}{ title: "{{ file.title | default: file.name }}", url: "{{ file.url | relative_url }}" }{% unless forloop.last %},{% endunless %}{% endfor %}
+];
+const cgList = [
+{% assign cg_pages = site.pages | where_exp: "item", "item.path contains 'CG_study/'" | sort: 'name' %}{% for file in cg_pages %}{ title: "{{ file.title | default: file.name }}", url: "{{ file.url | relative_url }}" }{% unless forloop.last %},{% endunless %}{% endfor %}
+];
+const isCV = window.location.href.includes('CV_study');
+const currentList = isCV ? cvList : cgList;
+let fileMenuOpen = false;
+let fileSelectedIndex = 0;
+const fileOverlay = document.getElementById('file-menu-overlay');
+const fileMenuList = document.getElementById('file-menu-list');
+function renderFileMenu() {
+fileMenuList.innerHTML = '';
+currentList.forEach((f, idx) => {
+let li = document.createElement('li');
+li.innerText = f.title;
+if (idx === fileSelectedIndex) {
+li.style.color = '#ffdd99';
+li.style.borderLeft = '2px solid #ffdd99';
+li.style.paddingLeft = '8px';
+}
+li.onclick = () => { window.location.href = f.url; }
+fileMenuList.appendChild(li);
+});
+}
+function toggleFileMenu() {
+fileMenuOpen = !fileMenuOpen;
+if (fileMenuOpen) {
+fileOverlay.className = '';
+renderFileMenu();
+} else {
+fileOverlay.className = 'hidden';
+}
+}
+let allTextNodes = []; 
+let currentNodeIdx = 0; 
+let currentOffset = 0;  
+const cursor = document.getElementById('vim-cursor');
+const posDisplay = document.getElementById('cursor-pos');
+const cmdCursor = document.getElementById('cmd-cursor');
+window.onload = function() {
+const walker = document.createTreeWalker(document.getElementById('main-buffer'), NodeFilter.SHOW_TEXT, null, false);
+let node;
+while(node = walker.nextNode()) {
+if(node.nodeValue.trim().length > 0) allTextNodes.push(node);
+}
+updateCursor();
+}
+function updateCursor() {
+if (allTextNodes.length === 0) return;
+const textNode = allTextNodes[currentNodeIdx];
+const textLen = textNode.nodeValue.length;
+if (currentOffset >= textLen) currentOffset = textLen - 1;
+if (currentOffset < 0) currentOffset = 0;
+const range = document.createRange();
+try {
+range.setStart(textNode, currentOffset);
+range.setEnd(textNode, currentOffset + 1);
+} catch(e) { return; }
+const rect = range.getBoundingClientRect();
+if (rect.width === 0) return;
+const bodyRect = document.querySelector('.vim-body').getBoundingClientRect();
+cursor.style.width = `${rect.width}px`;
+cursor.style.height = `${rect.height}px`;
+cursor.style.transform = `translate(${rect.left - bodyRect.left}px, ${rect.top - bodyRect.top}px)`;
+cursor.style.opacity = 0.5;
+posDisplay.innerText = `${currentNodeIdx + 1}:${currentOffset + 1}`;
+if (rect.top > window.innerHeight - 80) window.scrollBy(0, 40);
+if (rect.top < 80) window.scrollBy(0, -40);
+}
+function focusMainBuffer() {
+cmdCursor.classList.remove('blink-block');
+cmdCursor.classList.add('solid-block');
+cmdCursor.style.opacity = 0.3; 
+}
+document.addEventListener('keydown', (e) => {
+if (e.metaKey || e.ctrlKey || e.altKey) return;
+focusMainBuffer();
+if (fileMenuOpen) {
+if (e.key === 'Escape') { toggleFileMenu(); return; }
+if (e.key === 'j' || e.key === 'ArrowDown') { e.preventDefault(); fileSelectedIndex = (fileSelectedIndex + 1) % currentList.length; renderFileMenu(); return; }
+if (e.key === 'k' || e.key === 'ArrowUp') { e.preventDefault(); fileSelectedIndex = (fileSelectedIndex - 1 + currentList.length) % currentList.length; renderFileMenu(); return; }
+if (e.key === 'Enter') { e.preventDefault(); window.location.href = currentList[fileSelectedIndex].url; return; }
+return;
+}
+const textNode = allTextNodes[currentNodeIdx];
+const len = textNode ? textNode.nodeValue.length : 0;
+switch(e.key) {
+case ' ': e.preventDefault(); toggleFileMenu(); break;
+case 'Tab': 
+e.preventDefault();
+if (isCV) window.location.href = "{{ '/CG_study/10-Geometry1-Introduction' | relative_url }}";
+else window.location.href = "{{ '/CV_study/1-4-PingTan_CV_Note' | relative_url }}";
+break;
+case 'H':
+if (e.shiftKey) {
+let idx = currentList.findIndex(f => window.location.href.includes(f.url));
+if (idx > 0) window.location.href = currentList[idx - 1].url;
+}
+break;
+case 'l': 
+if (currentOffset < len - 1) currentOffset++;
+else if (currentNodeIdx < allTextNodes.length - 1) { currentNodeIdx++; currentOffset = 0; }
+updateCursor(); break;
+case 'h': 
+if (currentOffset > 0) currentOffset--;
+else if (currentNodeIdx > 0) { currentNodeIdx--; currentOffset = allTextNodes[currentNodeIdx-1].nodeValue.length - 1; }
+updateCursor(); break;
+case 'j': 
+if (currentNodeIdx < allTextNodes.length - 1) { currentNodeIdx++; currentOffset = 0; updateCursor(); } break;
+case 'k': 
+if (currentNodeIdx > 0) { currentNodeIdx--; currentOffset = 0; updateCursor(); } break;
+case '0': window.location.href = "{{ '/' | relative_url }}"; break;
+case 'm': e.preventDefault(); toggleMenu(true); break;
+case 'L': 
+if (e.shiftKey) {
+let idx = currentList.findIndex(f => window.location.href.includes(f.url));
+if (idx !== -1 && idx < currentList.length - 1) window.location.href = currentList[idx + 1].url;
+}
+break;
+}
+});
+const overlay = document.getElementById('telescope-overlay');
+function toggleMenu(state) { if(overlay) overlay.className = state ? '' : 'hidden'; }
+document.addEventListener('keydown', e => { if(e.key==='Escape') toggleMenu(false); });
+const headers = document.querySelectorAll('.vim-content h2, .vim-content h3');
+const list = document.getElementById('tele-list');
+if(list && headers.length > 0) {
+headers.forEach(h => {
+let li = document.createElement('li');
+li.innerText = h.innerText;
+li.onclick = () => { h.scrollIntoView({behavior:'smooth'}); toggleMenu(false); }
+list.appendChild(li);
+});
+}
+window.addEventListener('scroll', () => {
+const docHeight = document.body.scrollHeight - window.innerHeight;
+const per = Math.round((window.scrollY / docHeight) * 100);
+const el = document.getElementById('scroll-per');
+if(el) el.innerText = (window.scrollY===0)?'TOP':(per>=99?'BOT':per+'%');
+});
 </script>

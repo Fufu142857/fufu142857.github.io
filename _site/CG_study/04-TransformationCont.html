@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transformation Cont. | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="transformation-cont">Transformation Cont.</h3>
+
+<h4 id="一-基础知识补充与三维变换-3d-transformations">一、 基础知识补充与三维变换 (3D Transformations)</h4>
+<p>在本节课的开始，我们首先补充了关于旋转矩阵的一个重要数学性质，并正式将二维变换扩展到三维空间。</p>
+
+<ul>
+  <li><strong>旋转矩阵的逆 (Inverse of Rotation Matrix)</strong>:如果我们要撤销一个旋转（即向相反方向旋转相同的角度，如从 $\theta$ 变为 $-\theta$），我们只需要将原旋转矩阵进行转置（Transpose）即可。在数学上，如果一个矩阵的逆等于它的转置，我们称其为正交矩阵（Orthogonal Matrix），所有的旋转矩阵都是正交矩阵。</li>
+  <li><strong>三维齐次坐标 (3D Homogeneous Coordinates)</strong>:与二维情况类似，我们在三维坐标后增加一个维度来统一表示所有的变换。
+    <ul>
+      <li><strong>3D Point (点)</strong> 表示为：$(x, y, z, 1)^T$。</li>
+      <li><strong>3D Vector (向量)</strong> 表示为：$(x, y, z, 0)^T$。</li>
+      <li>对于一般的 $(x, y, z, w)$ （且 $w \neq 0$），它代表的三维点实际为 $(x/w, y/w, z/w, 1)^T$。</li>
+    </ul>
+  </li>
+  <li><strong>三维仿射变换 (3D Affine Transformations)</strong>:使用 $4 \times 4$ 矩阵来表示三维的平移、缩放和旋转，应用顺序同样是先进行线性变换（Linear Transform），再进行平移（Translation）。</li>
+  <li><strong>三维旋转 (3D Rotations)</strong>:
+    <ul>
+      <li><strong>绕单一坐标轴旋转</strong>:我们可以写出分别绕 X轴 ($R_x$)、Y轴 ($R_y$) 和 Z轴 ($R_z$) 旋转的矩阵。</li>
+      <li><strong>绕 Y 轴旋转的特殊性</strong>:大家会发现 $R_y$ 矩阵中 $\sin\theta$ 的正负号与其他两个矩阵是相反的。这是因为在右手螺旋定则中，$z \times x = y$，而不是 $x \times z$，这种循环对称（Cyclic symmetry）的属性导致了矩阵中正负号的翻转。</li>
+      <li><strong>欧拉角 (Euler Angles)</strong>:任何复杂的三维旋转都可以被分解为绕 X、Y、Z 三个轴的旋转组合（即 $R_{xyz}(\alpha, \beta, \gamma) = R_x(\alpha)R_y(\beta)R_z(\gamma)$）。这常用于飞行模拟器中，分别对应滚转（Roll）、俯仰（Pitch）和偏航（Yaw）。</li>
+      <li><strong>罗德里格斯旋转公式 (Rodrigues’ Rotation Formula)</strong>:该公式用于计算绕空间中任意旋转轴 $n$ 旋转角度 $\alpha$ 所得到的变换矩阵。公式为：$R(n, \alpha) = \cos(\alpha)I + (1-\cos(\alpha))nn^T + \sin(\alpha)\begin{pmatrix} 0 &amp; -n_z &amp; n_y \ n_z &amp; 0 &amp; -n_x \ -n_y &amp; n_x &amp; 0 \end{pmatrix}$。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="二-观测变换概述-viewing-transformation">二、 观测变换概述 (Viewing Transformation)</h4>
+<p>将三维场景转化为二维图像的过程，被称为观测变换。这与现实生活中拍照片的过程完全一致，主要包含三个步骤，简称为 <strong>MVP 变换</strong>:</p>
+<ol>
+  <li><strong>Model Transformation (模型变换)</strong>:寻找一个合适的场景，把所有的物体和人物（模型）摆放好。</li>
+  <li><strong>View / Camera Transformation (视图变换 / 相机变换)</strong>:找到一个好的角度，架设好相机。</li>
+  <li><strong>Projection Transformation (投影变换)</strong>:按下快门，将三维空间投影到二维的照片上。</li>
+</ol>
+
+<h4 id="三-视图变换--相机变换-view--camera-transformation">三、 视图变换 / 相机变换 (View / Camera Transformation)</h4>
+<ul>
+  <li><strong>定义相机 (Define the Camera)</strong>:要在空间中完全确定一个相机，我们需要定义三个向量属性：
+    <ol>
+      <li><strong>Position (位置)</strong>:相机所在的三维坐标点 $\vec{e}$。</li>
+      <li><strong>Look-at / Gaze direction (观测方向)</strong>:相机镜头朝向的向量 $\vec{g}$。</li>
+      <li><strong>Up direction (向上方向)</strong>:控制相机自身旋转角度的向量 $\vec{t}$（假设垂直于观测方向）。</li>
+    </ol>
+  </li>
+  <li><strong>视图变换的核心思想 (Key Observation)</strong>:相对运动原理告诉我们，如果相机和所有物体以相同的方式一起移动，拍出的照片是完全一样的。为了简化后续计算，图形学中采用了一个约定的标准做法：<strong>永远将相机平移到原点 $(0,0,0)$，让它看向 $-Z$ 轴方向，并且向上方向为 $Y$ 轴</strong> 。</li>
+  <li><strong>视图变换矩阵 ($M_{view}$) 的推导</strong>:
+    <ol>
+      <li>首先，进行平移变换 $T_{view}$，将相机中心 $\vec{e}$ 移动到原点。</li>
+      <li>然后，进行旋转变换 $R_{view}$，将 $\vec{g}$ 旋转到 $-Z$，$\vec{t}$ 旋转到 $Y$，并将 $(\vec{g} \times \vec{t})$ 旋转到 $X$。</li>
+      <li><strong>如何写出这个复杂的旋转矩阵？</strong> 直接写很难，但写出它的<strong>逆变换</strong>极其容易：即将 $X$ 轴转到 $(\vec{g} \times \vec{t})$、$Y$ 轴转到 $\vec{t}$、$Z$ 轴转到 $-\vec{g}$。由于旋转矩阵是正交矩阵，我们求出这个好写的逆矩阵后，直接对其进行转置（Transpose），就能得到我们真正需要的 $R_{view}$。</li>
+      <li>最终的视图变换矩阵：$M_{view} = R_{view} T_{view}$。注意，场景中的所有其他物体都要跟随相机统一应用这个 $M_{view}$ 矩阵，这被称为 ModelView Transformation。</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="四-投影变换-projection-transformation">四、 投影变换 (Projection Transformation)</h4>
+<p>相机摆放好后，我们需要进行 3D 到 2D 的投影变换。计算机图形学主要使用两种投影方式：</p>
+
+<h5 id="1-正交投影-orthographic-projection">1. 正交投影 (Orthographic Projection)</h5>
+<ul>
+  <li><strong>特性</strong>:假设相机在无限远处，投影不会产生“近大远小”的现象，平行线在投影后依然是平行的。常用于工程制图。</li>
+  <li><strong>规范化过程 (Canonical Cube)</strong>:在实际操作中，我们会在三维空间中定义一个由左(L)、右(R)、下(B)、上(T)、近(N)、远(F) 六个面组成的长方体边界框 $[l, r] \times [b, t] \times [f, n]$。正交投影的目标是将这个长方体映射（挤压）成一个覆盖范围在 $[-1, 1]^3$ 的 <strong>标准立方体 (Canonical Cube)</strong> 。</li>
+  <li><strong>正交投影矩阵 ($M_{ortho}$)</strong>:这个映射可以通过先平移（将长方体中心移到原点），再缩放（将各边长拉伸为长度 2）来实现。最终得到由平移矩阵和缩放矩阵相乘构成的正交投影矩阵。</li>
+  <li><strong>关于深度的特别提醒</strong>:因为我们将相机规定为看向 $-Z$ 轴，因此对于物体来说，离相机越“近”（Near），它的 $z$ 坐标反而越大；离相机越“远”（Far），$z$ 坐标越小（即 $n &gt; f$）。由于这不够直观，部分图形学 API（如 OpenGL）在底层采用了左手坐标系来避免这个问题。</li>
+</ul>
+
+<h5 id="2-透视投影-perspective-projection">2. 透视投影 (Perspective Projection)</h5>
+<ul>
+  <li><strong>特性</strong>:它是计算机图形学和视觉艺术中最常用的投影方式。满足“近大远小”的视觉规律，原本平行的线在透视投影后会相交于一点。</li>
+  <li><strong>透视投影的视野空间 (Frustum)</strong>:透视投影的视锥体（Frustum）呈金字塔被削平顶部的形状，由近平面和远平面截断而成。</li>
+  <li><strong>透视投影的算法思路</strong>:为了求出透视投影矩阵 ($M_{persp}$)，我们可以将这个问题巧妙地拆分为两步：
+    <ol>
+      <li>先设计一个“挤压”矩阵 ($M_{persp \to ortho}$)，将呈锥台状的 Frustum 挤压成一个正规的长方体。</li>
+      <li>然后，对这个长方体应用我们已经推导过的正交投影矩阵 ($M_{ortho}$)。</li>
+    </ol>
+  </li>
+  <li><strong>“挤压”矩阵 ($M_{persp \to ortho}$) 的推导极其精妙</strong> ，主要利用了齐次坐标和相似三角形：
+    <ol>
+      <li><strong>相似三角形计算</strong>:从侧面观察视锥体，可以找到相似三角形关系。空间中任意点 $(x, y, z)$ 挤压到近平面（深度为 $n$）时，新的 $y’$ 坐标变为 $(n/z)y$，新的 $x’$ 坐标变为 $(n/z)x$。</li>
+      <li><strong>齐次坐标等价性</strong>:在齐次坐标中，点 $(nx/z, ny/z, \text{unknown}, 1)$ 乘以 $z$ 后，等价于点 $(nx, ny, \text{unknown}\cdot z, z)$。通过这个结果向量，我们可以反推出要求的 $4 \times 4$ 挤压矩阵的第 1、2、4 行。</li>
+      <li><strong>利用关键平面求解第 3 行</strong>:目前矩阵的第 3 行是 $(0, 0, A, B)$，未知变量为 $A$ 和 $B$。我们可以利用两个不变的边界条件来解方程：
+        <ul>
+          <li><strong>条件一</strong>:在<strong>近平面</strong>上的任何点，挤压后其 $Z$ 坐标不变（依然是 $n$）。代入可得方程：$An + B = n^2$。</li>
+          <li><strong>条件二</strong>:在<strong>远平面</strong>的中心点 $(0, 0, f)$，挤压后其 $Z$ 坐标保持不变（依然是 $f$）。代入可得方程：$Af + B = f^2$。</li>
+        </ul>
+      </li>
+      <li>联立解得：$A = n+f$，$B = -nf$。</li>
+    </ol>
+  </li>
+  <li><strong>最终的透视投影公式</strong>:$M_{persp} = M_{ortho} M_{persp \to ortho}$。至此，整个复杂的透视投影计算就可以通过两个矩阵相乘完美解决了。</li>
+</ul>
+
+</body>
+</html>

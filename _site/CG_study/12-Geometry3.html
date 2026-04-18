@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geometry 3 | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="geometry-3">Geometry 3</h3>
+
+<h4 id="一-课程背景与大事件">一、 课程背景与大事件</h4>
+<p>2019年的图灵奖（Turing Award）颁给了计算机图形学领域的两位先驱：Ed Catmull 和 Pat Hanrahan。他们的重要贡献（如 Catmull-Clark 曲面细分、RenderMan 和路径追踪等技术）极大地推动了计算机图形学的发展，可以说他们 “Made Computer Graphics Great”。本节课将详细探讨由他们所发明的相关几何算法。</p>
+
+<h4 id="二-网格操作与几何处理-mesh-operations--geometry-processing">二、 网格操作与几何处理 (Mesh Operations / Geometry Processing)</h4>
+<p>上一讲我们介绍了显式几何的表示方法，在此基础上，图形学中还需要对多边形网格进行各种几何操作以满足不同渲染需求。核心操作主要包括三类：</p>
+<ol>
+  <li><strong>网格细分 (Mesh Subdivision)</strong>：增加网格三角形的数量（Upsampling），以提高分辨率，使粗糙的模型表面变得圆润光滑。</li>
+  <li><strong>网格简化 (Mesh Simplification)</strong>：在尽量保持物体原有外形和轮廓的前提下，减少网格三角形的数量（Downsampling），从而节约计算性能和显存。</li>
+  <li><strong>网格正规化 (Mesh Regularization)</strong>：在不改变三角形数量的前提下，修改顶点的分布，使得狭长尖锐的三角形尽可能变得接近正三角形，以提高网格的整体渲染质量。</li>
+</ol>
+
+<h4 id="三-网格细分-mesh-subdivision">三、 网格细分 (Mesh Subdivision)</h4>
+<p>网格细分通常包含两个核心步骤：首先引入更多的三角形（或顶点），然后根据特定规则调整这些顶点的位置，使其趋于平滑。</p>
+
+<p><strong>1. Loop 细分 (Loop Subdivision)</strong></p>
+<ul>
+  <li>这是一种专门针对<strong>三角形网格 (Triangle meshes)</strong> 的细分算法。</li>
+  <li><strong>增加顶点</strong>：将三角形三条边的中点相互连接，从而把一个原三角形拆分成四个较小的三角形。</li>
+  <li><strong>调整位置</strong>：Loop 细分将顶点严格区分为“新顶点”和“旧顶点”，并采取不同的加权平均策略来更新位置。
+    <ul>
+      <li><strong>新顶点 (New vertex)</strong>：即新增在边中点上的点。其位置由周围四个旧顶点的加权平均决定，公式为 <code class="language-plaintext highlighter-rouge">3/8 * (A + B) + 1/8 * (C + D)</code>（A、B 为所在边的两端点，C、D 为相邻两个三角形的对角顶点）。</li>
+      <li><strong>旧顶点 (Old vertex)</strong>：原本就存在的顶点。其新位置由其自身原位置与周围相邻旧顶点的平均位置组合而成，公式为 <code class="language-plaintext highlighter-rouge">(1 - n*u) * original_position + u * neighbor_position_sum</code>。其中 <code class="language-plaintext highlighter-rouge">n</code> 是该顶点的度 (Degree，即与其相连的边数)，<code class="language-plaintext highlighter-rouge">u</code> 是一个与度相关的权重参数。该公式兼顾了保持原有形状与迎合周围表面平滑度的需求。</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>2. Catmull-Clark 细分 (Catmull-Clark Subdivision)</strong></p>
+<ul>
+  <li>Loop 细分只能处理三角形，而 Catmull-Clark 细分能够处理包含四边形及多边形的<strong>一般网格 (General Mesh)</strong>。</li>
+  <li><strong>核心定义</strong>：
+    <ul>
+      <li><strong>非四边形面 (Non-quad face)</strong>：边数不等于 4 的面（例如三角形面）。</li>
+      <li><strong>奇异点 (Extraordinary vertex)</strong>：度数（连接的边数）不等于 4 的顶点。</li>
+    </ul>
+  </li>
+  <li><strong>细分步骤</strong>：在网格的每一条边上取一个中点，在每一个面内取一个中心点，然后将面内的点与该面上所有边的中点相连。</li>
+  <li><strong>重要性质</strong>：
+    <ul>
+      <li>经过第一次细分后，所有的非四边形面都会被拆解转化并<strong>彻底消失</strong>，全网格都会变成四边形面。</li>
+      <li>原本网格中有多少个非四边形面，第一次细分时就会<strong>增加</strong>多少个奇异点。</li>
+      <li>由于经过一次细分后不再存在非四边形面，因此在后续的无数次细分中，<strong>奇异点的数量永远不会再增加</strong>。</li>
+    </ul>
+  </li>
+  <li>该算法同样会基于面点 (Face point)、边点 (Edge point) 和旧顶点 (Vertex point) 的相应规则进行加权平均计算，以平滑曲面。皮克斯早期的动画短片《Geri’s Game》便运用了此项技术。</li>
+</ul>
+
+<h4 id="四-网格简化-mesh-simplification">四、 网格简化 (Mesh Simplification)</h4>
+<p>为了兼顾渲染质量与性能，在物体距离相机较远时，我们不需要极其复杂的模型，因此需要网格简化技术（这属于几何层面的层次细节构建）。其目标是用更少的元素维持外观。</p>
+
+<ul>
+  <li><strong>基本操作：边坍缩 (Edge Collapse)</strong>
+    <ul>
+      <li>将网格上的一条边连同其两端的两个顶点捏合（坍缩）成一个新的单一顶点，从而消除相关的面。</li>
+    </ul>
+  </li>
+  <li><strong>二次误差度量 (Quadric Error Metric)</strong>
+    <ul>
+      <li><strong>问题</strong>：坍缩后得到的新顶点应该放置在什么位置？如果简单地求原先几个点的平均值，会导致原本凸起的表面变平，破坏了物体原本的轮廓和体积感。</li>
+      <li><strong>解决方案</strong>：图形学采用二次误差度量，寻找一个最优的空间位置，使得<strong>新顶点到坍缩前与其相连的所有三角形平面之间的距离平方和（L2距离）达到最小</strong>。这本质上是一个局部最优化问题。</li>
+    </ul>
+  </li>
+  <li><strong>算法实现思路</strong>：
+    <ol>
+      <li>预计算网格中每一条边坍缩后所能产生的最小二次误差度量，将其作为该边的“分数”。</li>
+      <li>利用贪心算法 (Greedy algorithm)，每次挑选分数最小（即误差最小）的边进行坍缩。</li>
+      <li><strong>动态更新数据结构</strong>：因为坍缩一条边会改变周围几何拓扑，受影响的边的二次误差必须重新计算。因此，在算法底层必须使用<strong>优先队列 (Priority Queue) 或 堆 (Heap)</strong> 结构，以确保在每次提取最小值后，能够动态且高效地更新周围边的误差值。</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="五-阴影映射-shadow-mapping">五、 阴影映射 (Shadow Mapping)</h4>
+<p>在之前讲解的光栅化着色（如 Blinn-Phong 模型）中，我们只计算了着色点本身的光照特性，并未考虑其他物体的遮挡，因此没有阴影。为了在光栅化流水线中生成阴影，业界发明了 Shadow Mapping 技术。</p>
+
+<ul>
+  <li><strong>核心理念</strong>：如果空间中某个点不在阴影里，说明它<strong>既能被相机看到，也能被光源看到</strong>。如果相机能看到它，但光源视野被别的物体挡住了，它就在阴影里。</li>
+  <li><strong>技术特点</strong>：它是一种纯粹的<strong>图像空间算法 (Image-space Algorithm)</strong>，在计算阴影期间不需要确切的场景几何拓扑数据；基础版本的算法主要用来生成点光源投射出的具有锐利边缘的<strong>硬阴影 (Hard shadows)</strong>。</li>
+  <li><strong>算法步骤 (两趟渲染 2-Pass)</strong>：
+    <ol>
+      <li><strong>Pass 1 (从光源渲染)</strong>：将虚拟相机放置在光源位置看向场景，进行一次光栅化，并专门记录下光源能看到的所有点的最近深度。这张深度图就是 <strong>Shadow Map (阴影图)</strong>。</li>
+      <li><strong>Pass 2 (从相机渲染与比对)</strong>：从真实的相机位置出发正常渲染场景。当相机看到某个像素点时，计算该点到光源的实际深度，并将该点重新投影 (Project) 回第一步生成的 Shadow Map 对应的像素上。</li>
+      <li><strong>判断阶段</strong>：对比该点的“实际深度”与 Shadow Map 中记录的“光源可见深度”。如果两者相等（一致），说明光线能照到该点，不在阴影中；如果实际深度大于记录的深度，说明该点在光源视野中被挡住了，判定为处于阴影中。</li>
+    </ol>
+  </li>
+  <li><strong>存在的痛点与缺陷</strong>：
+    <ul>
+      <li><strong>数值精度问题</strong>：计算机浮点数很难做到完美的相等比对，在同一平面上极易因为细微偏差而产生错误的自阴影（画面变脏）。尽管工业界常通过引入一个人工的偏差值 (Bias) 来缓解，但这无法从理论上完美根除该问题。</li>
+      <li><strong>走样 (Aliasing/锯齿)</strong>：由于 Shadow Map 本质是一张具有固定分辨率的图像，若阴影图分辨率较低，最后投影在场景中的阴影边缘就会呈现非常明显的马赛克和锯齿。</li>
+      <li><strong>缺乏软阴影 (Soft shadows)</strong>：现实中的光源（如太阳）具有体积，会产生完全阻挡光线的<strong>本影 (Umbra)</strong> 和部分阻挡光线的<strong>半影 (Penumbra)</strong>，从而形成边缘渐变的软阴影。基础的 Shadow Mapping 只能模拟没有体积的虚拟点光源，无法自然生成软阴影。</li>
+    </ul>
+  </li>
+</ul>
+
+</body>
+</html>

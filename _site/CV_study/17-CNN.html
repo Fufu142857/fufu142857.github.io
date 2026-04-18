@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>卷积神经网络 CNN | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="卷积神经网络-cnn">卷积神经网络 CNN</h3>
+
+<h4 id="1-background--history">1 Background &amp; History</h4>
+<ul>
+  <li><strong>引爆点</strong>: 2012年，AlexNet 在 ImageNet 图像分类比赛中取得了历史性的突破，将错误率一次性拉低了约10个百分点，这是现代深度学习和计算机视觉大爆发的起点。</li>
+  <li><strong>历史溯源</strong>: 神经网络的思想可以追溯到 1958 年的 Perceptron (感知机) 模型。而现代 CNN 的雏形是 1998 年 Yann LeCun 提出的 <strong>LeNet</strong> ，该网络成功应用于手写数字 (Handwritten digits) 的识别。</li>
+</ul>
+
+<h4 id="2-cnn-core-components">2 CNN Core Components</h4>
+<p>一个标准的卷积神经网络通常由以下几种基本层级 (Layers) 堆叠而成：</p>
+
+<p><strong>1. Convolutional Layer (卷积层)</strong></p>
+
+<ul>
+  <li><strong>核心操作</strong>: 使用一个或多个 <strong>Filter / Kernel (卷积核)</strong> 在输入图像上滑动，进行局部区域的点乘求和，输出一个 <strong>Feature map / Activation map (特征图 / 激活图)</strong> 。</li>
+  <li><strong>Stride (步长)</strong>: 决定了卷积核在图像上滑动的间隔。Stride 为 1 时逐像素滑动，Stride 较大时会导致输出特征图的空间分辨率降低。</li>
+  <li><strong>多通道 (Multiple Channels)</strong>: 输入若是 RGB 图像，卷积核也必须是 3 通道的（如 5x5x3）。如果我们使用多个不同的卷积核（如 64 个），最终就会输出一个具有 64 个 Channel 的特征图。</li>
+  <li><strong>1x1 Convolution (1x1 卷积)</strong>: 虽然空间维度只有 1x1，但它在所有通道上进行加权求和。通常被用作特征通道的降维 (压缩) 或升维工具。</li>
+</ul>
+
+<p><strong>2. Activation Function (激活函数)</strong></p>
+
+<ul>
+  <li><strong>为什么需要？</strong> 如果没有非线性激活函数，多层网络串联起来在数学上仍然等价于单层线性映射，网络将彻底失去拟合复杂函数的能力。</li>
+  <li><strong>Sigmoid</strong>: 早期常用的激活函数，将输出压缩到 0 到 1 之间。它的致命缺点是 <strong>Gradient Vanishing (梯度消失)</strong> :当输入值过大或过小时，曲线十分平坦，梯度几乎为 0，导致反向传播时无法更新网络参数。</li>
+  <li><strong>ReLU (Rectified Linear Unit)</strong>: 现代 CNN 最常用的激活函数，$f(x) = \max(0, x)$。它在正半轴梯度恒为 1，完美解决了梯度消失问题，且计算极其简单，大幅加速了训练。</li>
+</ul>
+
+<p><strong>3. Pooling Layer (池化层 / 下采样层)</strong></p>
+
+<ul>
+  <li><strong>作用</strong>: 主要用于降低特征图的 <strong>Spatial resolution (空间分辨率)</strong> 。</li>
+  <li><strong>Max Pooling (最大池化)</strong>: 最常见的做法。例如在一个 2x2 的窗口内只保留最大值。</li>
+  <li><strong>几何意义</strong>: 它提供了局部的空间不变性 (Spatial invariance)。只要图像中存在某个特征（不论在窗口的哪个具体像素点响应），Max Pooling 都会将这个强烈的信号保留下来传递给下一层。另外，池化层是<strong>没有参数需要学习的</strong>。</li>
+</ul>
+
+<p><strong>4. Fully Connected Layer (全连接层, FC Layer)</strong></p>
+
+<ul>
+  <li><strong>结构</strong>: 位于网络的末端，这里的每一个神经元都与前一层的所有神经元相连。</li>
+  <li><strong>特点</strong>: 全连接层包含了网络中绝大多数的 <strong>Parameters (参数权重)</strong> ，非常容易导致过拟合。</li>
+</ul>
+
+<h4 id="3-back-propagation">3 Back Propagation</h4>
+
+<ul>
+  <li><strong>动机</strong>: 一个现代 CNN 动辄拥有上百万甚至上亿的参数。如果单独对每一个参数通过微扰去计算梯度，计算量大到不可接受。</li>
+  <li><strong>核心思想</strong>: 巧妙利用微积分中的 <strong>Chain Rule (链式法则)</strong> 。先计算网络最后层（Loss function）的梯度，然后利用这些算好的局部偏导数，逐层向后方传递。这样上游算好的计算结果可以被直接复用 (Reuse)，极大地加速了梯度的计算过程。</li>
+</ul>
+
+<h4 id="4-classic-architectures">4 Classic Architectures</h4>
+
+<ul>
+  <li><strong>AlexNet (2012)</strong>: 具有划时代意义的网络。使用了 11x11 的大卷积核，首次引入了 ReLU 激活函数和 Dropout 技术来防止过拟合。</li>
+  <li><strong>VGGNet (2014)</strong>: 更深的网络（如 VGG-16, VGG-19）。其核心法则是抛弃大卷积核，<strong>全部使用 3x3 的小卷积核</strong> 。分析表明，VGG 网络的早期卷积层消耗了绝大多数的 <strong>Memory (内存)</strong> ，而末端的全连接层占据了绝大多数的 <strong>Parameters (参数)</strong> 。</li>
+  <li><strong>GoogLeNet (2014)</strong>: 引入了 <strong>Inception module</strong> 。它在同一层并联使用 1x1, 3x3, 5x5 的卷积和池化，最后拼在一起。它彻底丢弃了庞大的全连接层，使得参数量大幅降低（仅 500 万参数）。</li>
+  <li><strong>ResNet (Residual Network, 2015)</strong>: 解决了网络过深（如 152 层）导致无法训练的难题。它引入了 <strong>Residual Block (残差块)</strong> 和 Skip connection (跳跃连接/恒等映射)。网络不再直接学习输入到输出的完整映射 $H(x)$，而是去学习它们之间的差值/残差 $F(x) = H(x) - x$。这极大地降低了深层网络优化的难度。</li>
+</ul>
+
+<h4 id="5-training-tricks--optimization">5 Training Tricks &amp; Optimization</h4>
+<p>为了让拥有海量参数的网络成功收敛，研究界发明了众多核心技巧：</p>
+
+<ul>
+  <li>
+    <p><strong>Data Preprocessing (数据预处理)</strong>: 图像输入网络前通常要进行 <strong>Zero-centering (减去均值)</strong> 和归一化。这能把能量函数的等高线拉圆，使优化计算变得更稳定。</p>
+  </li>
+  <li><strong>Dropout</strong>: 听上去很疯狂但极其有效的防过拟合技巧。在训练时，依概率 (如 0.5) <strong>随机丢弃 (Drop out)</strong> 一些神经元，假装它们不存在。
+    <ul>
+      <li><em>原理解释 1</em>: 强迫网络在看不到某些特征（如看不到人脸）的情况下仍能正确分类，防止模型过度依赖某单一特征。</li>
+      <li><em>原理解释 2</em>: 相当于训练了无数个微小的子网络，最后做了一个 Ensemble (集成学习) 投票。测试时需停止丢弃神经元。</li>
+    </ul>
+  </li>
+  <li><strong>Batch Normalization (批归一化)</strong>:
+    <ul>
+      <li><strong>问题</strong>: 训练时前一层的参数不断更新，导致后一层接收到的数据分布（均值和方差）不断乱跑，这让网络很难收敛。</li>
+      <li><strong>解法</strong>: 插入在卷积和 ReLU 之间。强制把当前 Mini-batch 的数据归一化为均值为 0，方差为 1 的分布。然后再乘上可学习的参数 $\gamma$ 和加上 $\beta$ 进行自适应的拉伸和平移。</li>
+      <li><em>注意</em>: 测试时只有一个样本算不出方差，因此在训练过程中需要用滑动平均 (Rolling average) 来估算全局的均值和方差供测试时使用。</li>
+    </ul>
+  </li>
+  <li><strong>高级优化器 (Optimization)</strong>:
+    <ul>
+      <li><em>Mini-batch SGD</em>: 每次随机抽少量样本计算梯度，导致 Loss 曲线呈现整体下降但局部抖动的锯齿状。</li>
+      <li><em>Momentum (动量)</em>: 引入物理学惯性思想。将历史梯度做滑动平均，抵消掉在峡谷地形中来回震荡的无用梯度，加强正确方向的速度。</li>
+      <li><em>RMSprop</em>: 根据历史梯度的平方幅度来调整学习率，震荡越剧烈的方向给予越小的权重。</li>
+      <li><em>Adam</em>: 直接结合了 Momentum 和 RMSprop 的双重优点，是目前最常用的优化算法。</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Learning Rate Decay (学习率衰减)</strong>: 随着模型逐渐接近局部最优解 (谷底)，需要将 <strong>Learning rate (学习率)</strong> 逐渐调小，以防止步子迈得太大而跨过最优解。</p>
+  </li>
+  <li>
+    <p><strong>Data Augmentation (数据增强)</strong>: 当数据量不足时，通过对图像进行水平翻转 (Flipping)、随机裁剪 (Cropping) 或色彩扰动来凭空制造更多数据，防止过拟合。</p>
+  </li>
+  <li><strong>Transfer Learning (迁移学习)</strong>: 也是解决数据不足的利器。利用在海量数据 (如 ImageNet) 上预训练好的网络，冻结 (Freeze) 其前半部分（那些提取通用强语义特征的卷积层），只在我们自己的小数据集上重新训练最后的分类器 / 全连接层。
+    <blockquote>
+      <p>适度利用和保留已有的</p>
+    </blockquote>
+  </li>
+</ul>
+
+</body>
+</html>

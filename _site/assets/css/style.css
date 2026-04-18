@@ -2,89 +2,65 @@
 @import url("https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css");
 * { box-sizing: border-box; }
 
-body { margin: 0; padding: 0; /* color: #eeeeee !important;*/ /* 灰白字 */ background-color: #1a1b1e !important; color: #cccccc !important; font-family: 'Hack', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif !important; /* letter-spacing: 0.02em; */ font-size: 20px; line-height: 1.8; /* 行高大一点 */ display: flex; min-height: 100vh; /* 让字体渲染更锐利 (仅限 MacOS) */ -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body { margin: 0; padding: 0; background-color: #121212 !important; /* vscode_theme Normal guibg */ color: #FFFFFF !important; /* vscode_theme Normal guifg */ font-family: 'Hack', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif !important; font-size: 20px; line-height: 1.8; display: flex; min-height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
-/* 链接样式：极简白 */
-a { color: #ffffff !important; text-decoration: underline; text-underline-offset: 4px; }
+/* 链接样式：Function (#569CD6) */
+a { color: #569CD6 !important; text-decoration: underline; text-underline-offset: 4px; }
 
-a:hover { color: #aaaaaa !important; text-decoration: none; }
+a:hover { color: #45A9D6 !important; text-decoration: none; }
 
-/* 代码块增强 */
-pre { background: #0d0d0d !important; /* 极深灰背景 */ border: 1px solid #333; padding: 15px; overflow-x: auto; /* 允许横向滚动 */ margin: 20px 0; }
-
-pre code { font-family: 'Hack', monospace; color: #a9b7c6; /* 默认代码灰 */ font-size: 13px; }
-
-/*
-.portal-container { display: flex; height: 100vh; width: 100%; overflow: hidden; background: #000000 !important;
-}
-
-.portal { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #222;  transition: all 0.5s; cursor: pointer; position: relative;
-}
-
-.portal:hover { background-color: #fff; color: #000; flex: 1.5; 
-}
-*/
-/* 传送门文字 */
-/*
-.portal h1 { font-size: 3rem; margin: 0; letter-spacing: -2px; }
-.portal p { font-size: 1rem; margin-top: 20px; font-family: 'Hack'; }
-.portal a { position: absolute; top:0; left:0; width:100%; height:100%; border:none; } 
-*/
+/* 1. 恢复的主页分屏布局 (Portal) */
 .portal-container { display: flex; height: 100vh; width: 100%; overflow: hidden; position: relative; background: #000; }
 
-/* 1. Fu_1/7 */
-.ghost-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); /* 绝对居中 */ z-index: 10; /* 浮在最上层 */ font-family: 'Hack', sans-serif; font-weight: 700; font-size: 10rem; line-height: 1; white-space: nowrap; text-align: center; /* 视觉风格：半透明 + 混合模式 */ color: #ffffff; opacity: 0.08; /* 极度透明 */ pointer-events: none; /* 鼠标穿透 */ /* 动画过渡 */ transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); filter: blur(0px); }
+.ghost-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; font-family: 'Hack', sans-serif; font-weight: 700; font-size: 10rem; line-height: 1; white-space: nowrap; text-align: center; color: #ffffff; opacity: 0.08; pointer-events: none; transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); filter: blur(0px); }
 
-/* 2. 传送门基础设定 */
-.portal { flex: 1; /* 默认对半开 */ display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; transition: all 0.5s ease; /* 丝滑变宽 */ border: 1px solid #111; /* 极暗的分割线 */ }
+.portal { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; transition: all 0.5s ease; border: 1px solid #111; cursor: pointer; }
 
-/* 链接覆盖层 */
-.portal a { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; border: none; }
+.portal a { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; border: none; }
 
-/* 文字内容 */
 .portal-content { z-index: 2; text-align: center; transition: transform 0.4s ease; }
 
 .portal h1 { font-size: 5rem; margin: 0; letter-spacing: -2px; color: #fff; white-space: nowrap; max-width: 90%; }
 
-.portal p { font-family: 'Hack'; color: #333; margin-top: 10px; opacity: 0; /* 平时不显示命令，悬停才显示 */ transform: translateY(20px); transition: all 0.4s ease; }
+.portal p { font-family: 'Hack'; color: #333; margin-top: 10px; opacity: 0; transform: translateY(20px); transition: all 0.4s ease; }
 
-/*
-.portal-container:hover .ghost-watermark { opacity: 0;  transform: translate(-50%, -50%) scale(1.5);  filter: blur(10px); 
-}
-*/
-.death-side:hover { flex: 2; /* 变宽 */ background-color: #eeeeee; /* 变白 */ }
+.death-side:hover, .cv-side:hover, .cg-side:hover { flex: 2; background-color: #eeeeee; }
 
-.death-side:hover h1 { color: #000; }
+.death-side:hover h1, .cv-side:hover h1, .cg-side:hover h1 { color: #000; }
 
-.death-side:hover p { color: #333; }
+.death-side:hover p, .cv-side:hover p, .cg-side:hover p { color: #333; }
 
-.cv-side:hover { flex: 2; /* 变宽 */ background-color: #eeeeee; /* 变白 */ }
-
-.cv-side:hover h1 { color: #000; }
-
-.cv-side:hover p { color: #333; }
-
-/* 显示副标题命令 */
 .portal:hover p { opacity: 1; transform: translateY(0); }
 
+/* 代码块增强 */
+.vim-content pre { background: #2A2D30 !important; /* CursorLine/RenderMarkdownCode */ border: 1px solid #2D2E30; padding: 15px; overflow-x: auto; margin: 20px 0; }
+
+.vim-content pre code { font-family: 'Hack', monospace; color: #FFFFFF; font-size: 14px; }
+
+/* 引用块 (String: #4CAF50) */
+.vim-content blockquote { color: #4CAF50; border-left: 4px solid #8B95A3; /* Comment color for border */ padding-left: 15px; margin-left: 0; font-style: italic; }
+
+/* 强调文字 */
+.vim-content strong, .vim-content b { color: #C586C0; /* Keyword/Statement for bold emphasis */ }
+
+.vim-content em, .vim-content i { color: #8B95A3; /* Comment for italic */ }
+
 /* ========================================= VIM GUI (Compact Mode 26px) ========================================= */
-.vim-gui { background-color: #0d0d0d; color: #eeeeee; min-height: 100vh; /* Top(26) + Bottom(26) + Cmd(26) */ padding-top: 26px; padding-bottom: 52px; }
+.vim-gui { background-color: #121212; color: #FFFFFF; min-height: 100vh; padding-top: 26px; padding-bottom: 52px; }
 
 /* --- Powerline Bar (26px) --- */
-.vim-bar { position: fixed; left: 0; width: 100%; height: 26px; display: flex; /* 字号 18px，正常粗细 */ font-size: 18px; font-weight: normal; line-height: 26px; z-index: 100; background: #0d0d0d; }
+.vim-bar { position: fixed; left: 0; width: 100%; height: 26px; display: flex; font-size: 18px; font-weight: normal; line-height: 26px; z-index: 100; background: #121212; }
 
 .vim-bar.top { top: 0; }
 
 .vim-bar.bottom-status { bottom: 26px; }
 
-.item { position: relative; color: #fff; display: flex; align-items: center; padding: 0 10px; /* 默认 */ }
+.item { position: relative; color: #fff; display: flex; align-items: center; padding: 0 10px; }
 
-/* 只有 bold 类加粗 */
 .item.bold { font-weight: 900; }
 
-.spacer { flex: 1; background: #0d0d0d; z-index: 1; }
+.spacer { flex: 1; background: #121212; z-index: 1; }
 
-/* Z-Index */
 .z10 { z-index: 20; }
 
 .z9 { z-index: 19; }
@@ -103,100 +79,113 @@ pre code { font-family: 'Hack', monospace; color: #a9b7c6; /* 默认代码灰 */
 
 .z2 { z-index: 12; }
 
-/* 颜色定义 */
-.bg-violet { background: #b362ff; color: #000; }
+.bg-violet { background: #C586C0; color: #121212; }
 
-.bg-purple { background: #8a2be2; color: #fff; }
+/* Keyword/Statement */
+.bg-purple { background: #569CD6; color: #121212; }
 
-.bg-blue { background: #3b3b5e; color: #fff; }
+/* Function */
+.bg-blue { background: #317796; color: #fff; }
 
-.bg-dark { background: #1a1a1a; color: #ccc; }
+/* Search/Visual */
+.bg-dark { background: #28292B; color: #FFFFFF; }
 
-.bg-deep { background: #111; color: #666; }
+/* Pmenu */
+.bg-deep { background: #232426; color: #8B95A3; }
 
-.bg-void { background: #0d0d0d; }
+/* StatusLineNC */
+.bg-void { background: #121212; }
 
-.text-gray { color: #888; }
+.text-gray { color: #8B95A3; }
 
-/* --- 箭头魔法 (Height 26px -> Border 13px) --- */
-/* 1. 向右箭头 (左侧栏) */
+/* --- 箭头魔法 --- */
 .arrow-right { margin-right: -13px; }
 
-/* 左侧：保持离远 2 个字母 (35px) */
 .arrow-right + .arrow-right { padding-left: 35px; }
 
 .arrow-right::after { content: ''; position: absolute; top: 0; right: -13px; width: 0; height: 0; border-top: 13px solid transparent; border-bottom: 13px solid transparent; border-left: 13px solid; border-left-color: inherit; z-index: 20; }
 
-.bg-violet.arrow-right::after { border-left-color: #b362ff; }
+.bg-violet.arrow-right::after { border-left-color: #C586C0; }
 
-.bg-blue.arrow-right::after { border-left-color: #3b3b5e; }
+.bg-blue.arrow-right::after { border-left-color: #317796; }
 
-.bg-dark.arrow-right::after { border-left-color: #1a1a1a; }
+.bg-dark.arrow-right::after { border-left-color: #28292B; }
 
-.bg-deep.arrow-right::after { border-left-color: #111; }
+.bg-deep.arrow-right::after { border-left-color: #232426; }
 
-.bg-purple.arrow-right::after { border-left-color: #8a2be2; }
+.bg-purple.arrow-right::after { border-left-color: #569CD6; }
 
-/* 2. 向左箭头 (右侧栏) */
-.arrow-left { margin-left: -13px; /* 核心修复： */ /* 左边距 12px：让字紧贴左边的箭头，保持紧凑感 */ padding-left: 12px; /* 右边距 30px：给字后面留出足够空间，防止被下一个箭头盖住 */ padding-right: 30px; }
+.arrow-left { margin-left: -13px; padding-left: 12px; padding-right: 30px; }
 
 .arrow-left::before { content: ''; position: absolute; top: 0; left: -13px; width: 0; height: 0; border-top: 13px solid transparent; border-bottom: 13px solid transparent; border-right: 13px solid; border-right-color: inherit; z-index: 20; }
 
-.bg-deep.arrow-left::before { border-right-color: #111; }
+.bg-deep.arrow-left::before { border-right-color: #232426; }
 
-.bg-dark.arrow-left::before { border-right-color: #1a1a1a; }
+.bg-dark.arrow-left::before { border-right-color: #28292B; }
 
-.bg-blue.arrow-left::before { border-right-color: #3b3b5e; }
+.bg-blue.arrow-left::before { border-right-color: #317796; }
 
-.bg-violet.arrow-left::before { border-right-color: #b362ff; }
+.bg-violet.arrow-left::before { border-right-color: #C586C0; }
 
-/* 左侧 Buffers 特殊箭头 */
 .arrow-left-void { padding-left: 35px; margin-left: -13px; }
 
-.arrow-left-void::before { content: ''; position: absolute; top: 0; left: -13px; width: 0; height: 0; border-top: 13px solid transparent; border-bottom: 13px solid transparent; border-right: 13px solid #0d0d0d; }
+.arrow-left-void::before { content: ''; position: absolute; top: 0; left: -13px; width: 0; height: 0; border-top: 13px solid transparent; border-bottom: 13px solid transparent; border-right: 13px solid #121212; }
 
-/* --- 底部命令行 (26px) --- */
-.vim-cmd-line { position: fixed; bottom: 0; left: 0; width: 100%; height: 26px; background-color: #000; color: #fff; /* 字体 18px，Normal */ font-family: 'Hack'; font-size: 18px; font-weight: normal; line-height: 26px; padding: 0 10px; z-index: 101; border-top: 1px solid #222; }
+/* --- 底部命令行 --- */
+.vim-cmd-line { position: fixed; bottom: 0; left: 0; width: 100%; height: 26px; background-color: #121212; color: #FFFFFF; font-family: 'Hack'; font-size: 18px; font-weight: normal; line-height: 26px; padding: 0 10px; z-index: 101; border-top: 1px solid #2D2E30; }
 
-.blink-block { display: inline-block; width: 10px; height: 16px; background: #fff; animation: blink 1s infinite; vertical-align: sub; }
+.blink-block { display: inline-block; width: 10px; height: 16px; background: #FFFFFF; animation: blink 1s infinite; vertical-align: sub; }
 
-.solid-block { display: inline-block; width: 10px; height: 16px; background: #666; vertical-align: sub; }
+.solid-block { display: inline-block; width: 10px; height: 16px; background: #8B95A3; vertical-align: sub; }
 
 @keyframes blink { 50% { opacity: 0; } }
 /* --- 正文与光标 --- */
 .vim-body { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; }
 
-#vim-cursor { position: absolute; top: 0; left: 0; background-color: #aaa; opacity: 0.5; mix-blend-mode: difference; pointer-events: none; z-index: 50; transition: transform 0.05s ease-out; }
+#vim-cursor { position: absolute; top: 0; left: 0; background-color: #FCFCFC; opacity: 0.5; /* Cursor guibg=#FCFCFC */ mix-blend-mode: difference; pointer-events: none; z-index: 50; transition: transform 0.05s ease-out; }
 
-.vim-content { padding: 40px 60px; font-size: 18px; line-height: 32px; color: #eeeeee; }
+.vim-content { padding: 40px 60px 40px 100px; /* 100px for gutter */ font-size: 18px; line-height: 32px; color: #FFFFFF; position: relative; counter-reset: vim-line; }
 
-.vim-block, p, h1, h2, h3, li { font-family: 'Hack', monospace; margin: 0 0 32px 0; padding: 0; }
+/* SignColumn / Gutter background */
+.vim-content::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 70px; background-color: #121212; /* SignColumn */ border-right: 1px solid #2D2E30; /* Visual separator */ z-index: 0; }
+
+.vim-content .vim-block, .vim-content p, .vim-content h1, .vim-content h2, .vim-content h3, .vim-content li, .vim-content pre, .vim-content blockquote { font-family: 'Hack', monospace; margin: 0 0 32px 0; padding: 0; position: relative; z-index: 1; }
+
+/* LineNr and relativenumber simulation */
+.vim-content .vim-block::before, .vim-content p::before, .vim-content h1::before, .vim-content h2::before, .vim-content h3::before, .vim-content li::before, .vim-content pre::before, .vim-content blockquote::before { counter-increment: vim-line; content: counter(vim-line); position: absolute; left: -85px; width: 40px; text-align: right; color: #72777B; /* LineNr guifg */ font-family: 'Hack', monospace; font-size: 16px; user-select: none; }
+
+/* Hover simulation of CursorLine and CursorLineNr */
+.vim-content .vim-block:hover::before, .vim-content p:hover::before, .vim-content h1:hover::before, .vim-content h2:hover::before, .vim-content h3:hover::before, .vim-content li:hover::before, .vim-content pre:hover::before, .vim-content blockquote:hover::before { color: #FFFFFF; /* CursorLineNr guifg */ font-weight: bold; }
+
+.vim-content .vim-block:hover, .vim-content p:hover, .vim-content h1:hover, .vim-content h2:hover, .vim-content h3:hover, .vim-content li:hover, .vim-content blockquote:hover { background-color: #2D2E30; /* CursorLine guibg */ box-shadow: -10px 0 0 #2D2E30, 10px 0 0 #2D2E30; /* Extend background slightly */ border-radius: 2px; }
+
+.portal-container p::before, .portal-content p::before, .portal h1::before { content: none !important; }
 
 .vim-gutter { display: none; }
 
-.vim-content h1 { font-size: 2.2em; color: #fff; font-weight: bold; border-bottom: 2px solid #b362ff; display: inline-block; }
+.vim-content h1 { font-size: 2.2em; color: #C586C0; font-weight: bold; border-bottom: 2px solid #569CD6; display: inline-block; }
 
-.token-purple { color: #b362ff; margin-right: 15px; }
+.token-purple { color: #569CD6; margin-right: 15px; }
 
-.vim-content h2 { color: #b362ff; margin-top: 60px; font-weight: bold; }
+.vim-content h2 { color: #C586C0; margin-top: 60px; font-weight: bold; }
 
-.vim-content h3 { color: #9E5CF5; margin-top: 40px; }
+.vim-content h3 { color: #C586C0; margin-top: 40px; }
 
-.vim-content a { color: #b362ff; text-decoration: underline; }
+.vim-content a { color: #569CD6; text-decoration: underline; }
 
-.vim-content code { background: #222; padding: 2px 4px; border-radius: 2px; }
+.vim-content code { background: #2A2D30; color: #FFFFFF; padding: 2px 4px; border-radius: 2px; }
 
-.eof { color: #333; margin: 10px 0; font-weight: bold; }
+.eof { color: #8B95A3; margin: 10px 0; font-weight: bold; }
 
 /* Telescope */
-#telescope-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+#telescope-overlay, #file-menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; }
 
-#telescope-overlay.hidden { display: none; }
+#telescope-overlay.hidden, #file-menu-overlay.hidden { display: none; }
 
-.telescope-box { width: 700px; background: #0d0d0d; border: 1px solid #b362ff; }
+.telescope-box { width: 700px; background: #121212; border: 1px solid #569CD6; }
 
-.tele-header { padding: 15px; border-bottom: 1px solid #333; color: #b362ff; font-weight: bold; }
+.tele-header { padding: 15px; border-bottom: 1px solid #2D2E30; color: #C586C0; font-weight: bold; }
 
-#tele-list li { padding: 10px 15px; color: #ccc; cursor: pointer; }
+#tele-list li, #file-menu-list li { padding: 10px 15px; color: #FFFFFF; cursor: pointer; }
 
-#tele-list li:hover { background: #222; color: #fff; border-left: 5px solid #b362ff; }
+#tele-list li:hover, #file-menu-list li:hover { background: #2A2D30; color: #FFFFFF; border-left: 5px solid #569CD6; }

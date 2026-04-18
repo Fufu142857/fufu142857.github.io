@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Review of Linear Algebra | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="review-of-linear-algebra">Review of Linear Algebra</h3>
+
+<h4 id="一-为什么在图形学中复习线性代数">一、 为什么在图形学中复习线性代数？</h4>
+<p>计算机图形学（Computer Graphics）高度依赖于底层的基础数学知识，尤其是 Linear Algebra（线性代数）。比如在图形学中，空间中的点可以看作向量（Vector），而物体的平移、旋转和缩放等变换（Transformations）操作则完全依赖于矩阵与向量的乘法（Matrix-vector multiplication）来实现。</p>
+
+<h4 id="二-向量-vectors">二、 向量 (Vectors)</h4>
+<p>向量是图形学中最基本的数学概念之一，用来表示空间中的方向和大小。</p>
+<ul>
+  <li><strong>基本属性</strong>:向量最核心的两个属性是<strong>方向（Direction）</strong>和<strong>长度（Length / Magnitude）</strong> 。向量没有绝对的起始位置，只要方向和长度相同，即便在空间中平移，它依然是同一个向量。</li>
+  <li><strong>单位向量 (Unit Vector)</strong>:长度为 1 的向量被称为单位向量。给定任意一个向量，将其除以自身的长度（这一过程称为 Normalization/归一化），就可以得到与其同向的单位向量。在图形学中，单位向量常被纯粹用来表示方向。</li>
+  <li><strong>向量加法 (Vector Addition)</strong>:
+    <ul>
+      <li><strong>几何意义</strong>:遵循平行四边形法则（Parallelogram law）或三角形法则（Triangle law），也就是将向量首尾相连即可得到相加的结果。</li>
+      <li><strong>代数意义</strong>:在直角坐标系中，向量相加就是将对应的坐标分量简单相加。</li>
+    </ul>
+  </li>
+  <li>==<strong>默认表示</strong>:在图形学和多数 API 的约定俗成中，默认所有的向量都是<strong>列向量（Column vector）</strong> ，即数值竖着排成一列形式。==</li>
+</ul>
+
+<h4 id="三-向量的点乘-dot-product--scalar-product">三、 向量的点乘 (Dot Product / Scalar Product)</h4>
+<p>点乘（Dot Product）是一种特殊的向量乘法，<strong>输入两个向量，输出的结果是一个标量（Scalar / 数）</strong> 。</p>
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td><strong>数学定义</strong>:向量 a 点乘向量 b 等于 a 的长度乘以 b 的长度，再乘以它们夹角的余弦值，公式为：$a \cdot b =</td>
+          <td>a</td>
+          <td> </td>
+          <td>b</td>
+          <td>\cos\theta$。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><strong>代数计算</strong>:在笛卡尔坐标系（直角坐标系）下，点乘非常容易计算，即两个向量对应坐标元素相乘后再相加（例如 3D 中是 $x_a x_b + y_a y_b + z_a z_b$）。</li>
+  <li>
+    <p><strong>代数性质</strong>:点乘满足交换律（Commutative）、结合律（Associative）和分配律（Distributive）。</p>
+  </li>
+  <li><strong>点乘在图形学中的核心应用</strong>:
+    <ol>
+      <li><strong>求夹角 (Find angle between vectors)</strong>:计算两个单位向量的点乘，可以直接得到它们之间夹角的余弦值（Cosine），从而求出夹角大小。这在计算光源与物体表面法线之间的夹角时非常重要。</li>
+      <li><strong>求投影 (Finding projection)</strong>:可以计算一个向量在另一个向量方向上的投影长度与投影向量。通过投影，还可以将一个向量分解（Decompose）为平行和垂直于某个方向的两个向量。</li>
+      <li><strong>判断前与后 (Determine forward / backward)</strong>:利用点乘的符号可以判断方向的异同。点乘结果大于 0 代表两向量方向基本一致（夹角在前半圆）；小于 0 代表方向基本相反；等于 0 则代表两向量互相垂直。</li>
+      <li><strong>判断方向接近度 (Measure how close two directions are)</strong>:在计算高光等材质效果时，通过点乘值越接近 1（对于单位向量），说明两方向越接近。</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="四-向量的叉乘-cross-product--vector-product">四、 向量的叉乘 (Cross Product / Vector Product)</h4>
+<p>叉乘（Cross Product）是另一种向量乘法，<strong>输入两个向量，输出的结果是另外一个新向量</strong> 。</p>
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td><strong>数学定义</strong>:向量 a 叉乘向量 b 得到的新向量，同时垂直于 a 和 b 所处的平面。其长度为：$</td>
+          <td>a \times b</td>
+          <td>=</td>
+          <td>a</td>
+          <td> </td>
+          <td>b</td>
+          <td>\sin\theta$。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><strong>方向判定</strong>:叉乘方向遵循<strong>右手螺旋定则（Right-hand rule）</strong> 。伸出右手，四指从向量 a 旋转扫向向量 b，大拇指竖起的方向即为 a 叉乘 b 的方向。</li>
+  <li>
+    <p><strong>代数性质</strong>:叉乘<strong>不满足</strong>交换律，随意交换顺序必须加上负号，即 $a \times b = -b \times a$。任意向量与自身叉乘的结果是零向量（因为夹角为 0，正弦值为 0）。</p>
+  </li>
+  <li><strong>叉乘在图形学中的核心应用</strong>:
+    <ol>
+      <li><strong>判定左与右 (Determine left / right)</strong>:给定向量 a 和向量 b，若 a 叉乘 b 得到的 Z 轴分量为正数，则说明 b 在 a 的左侧（逆时针方向）；若为负，则 b 在 a 的右侧。</li>
+      <li><strong>判定内与外 (Determine inside / outside)</strong>:在光栅化（Rasterization）过程中尤为重要，用来判定一个像素点是否在三角形内部。沿着三角形边缘按固定顺序（如逆时针）利用边向量叉乘点向量，如果该点始终在三条边的同一侧（比如都是左侧），则说明该点在三角形内部。</li>
+      <li><strong>构建正交基底与坐标系 (Orthonormal Bases and Coordinate Frames)</strong>:给定任意两个向量，可以通过叉乘求出垂直于它们的第三个轴，从而在三维空间中构建出互相垂直的基底向量坐标系（例如用 $x$ 叉乘 $y$ 得到 $z$，这被称为右手坐标系）。它对于不同空间（如局部空间、世界模型）之间的坐标变换极其关键。</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="五-矩-阵-matrices">五、 矩 阵 (Matrices)</h4>
+<p>在图形学中，矩阵被广泛用于表示和操作空间中的变换（Transformations），例如平移（Translation）、旋转（Rotation）、缩放（Scale）和错切（Shear）。</p>
+<ul>
+  <li><strong>矩阵乘法 (Matrix-Matrix Multiplication)</strong>:
+    <ul>
+      <li><strong>维度要求</strong>:只有当矩阵 A 的列数（Columns）等于矩阵 B 的行数（Rows）时，两者才能相乘。例如 $(M \times N)$ 的矩阵乘 $(N \times P)$ 的矩阵，得到的是 $(M \times P)$ 大小的矩阵。</li>
+      <li><strong>计算方法</strong>:新矩阵中第 i 行第 j 列的元素，是由第一个矩阵的第 i 行向量与第二个矩阵的第 j 列向量进行点乘（Dot Product）计算得出的。</li>
+    </ul>
+  </li>
+  <li><strong>矩阵性质 (Properties)</strong>:
+    <ul>
+      <li><strong>无交换律 (Non-commutative)</strong>:通常情况下 $AB \neq BA$，切忌随意颠倒乘法顺序。</li>
+      <li><strong>具有结合律和分配律 (Associative and distributive)</strong>:可以进行 $(AB)C = A(BC)$ 或 $A(B+C) = AB + AC$ 等运算。</li>
+    </ul>
+  </li>
+  <li><strong>特殊矩阵与操作</strong>:
+    <ul>
+      <li><strong>矩阵与向量的乘法 (Matrix-Vector Multiplication)</strong>:将列向量视为特殊的矩阵置于右侧相乘，这是改变几何点坐标、实行坐标变换的核心工具。例如利用特定的二维矩阵可以实现点沿 Y 轴的对称变换（Reflection）。</li>
+      <li><strong>转置 (Transpose, 写为 $A^T$)</strong>:把原矩阵的行和列互换。转置的乘积满足特殊性质：$(AB)^T = B^T A^T$（先交换顺序再分别转置）。</li>
+      <li><strong>单位矩阵 (Identity Matrix, 写为 $I$)</strong>:一个对角线上元素全为 1、其余全为 0 的矩阵。它不产生任何变换操作，$AI = IA = A$。</li>
+      <li><strong>逆矩阵 (Inverse, 写为 $A^{-1}$)</strong>:若某矩阵与其逆矩阵相乘，结果等于单位矩阵（$AA^{-1} = I$）。求逆矩阵的乘法依然遵循倒序规则：$(AB)^{-1} = B^{-1}A^{-1}$。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="六-向量运算的矩阵形式">六、 向量运算的矩阵形式</h4>
+<p>为了在底层（如 API 运算或硬件实现上）统一化，向量的运算通常可以写成矩阵的形式：</p>
+<ul>
+  <li><strong>点乘的矩阵形式</strong>:$a \cdot b = a^T b$。即把原先作为列向量的 $a$ 进行转置变为行向量，再去乘列向量 $b$，结果刚好是一个数值（$1 \times 3$ 的矩阵乘 $3 \times 1$ 的矩阵得到 $1 \times 1$）。</li>
+  <li><strong>叉乘的矩阵形式</strong>:$a \times b = A^* b$。即可以把向量 $a$ 的各个分量按照一定规律重新排列，构建出一个被称为 Dual matrix（对偶矩阵）的特殊矩阵 $A^*$，再用此矩阵去乘列向量 $b$，即可直接得到叉乘结果，这在后续推导复杂旋转公式时非常有用。</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filters | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="filters">Filters</h3>
+
+<h4 id="1-image-filtering">1. Image Filtering</h4>
+
+<ul>
+  <li>
+    <p><strong>核心思想</strong>: 滤波的基本概念是用一个局部邻域内所有像素的 <strong>Linear combination (线性组合 / 加权平均)</strong> ，来替换掉中心像素的值。</p>
+  </li>
+  <li>
+    <p><strong>Kernel (卷积核 / 滤波器)</strong>: 决定如何进行加权平均的矩阵（例如 3x3 或 7x7 的窗口）。通常，我们会使用 <strong>Spatially-invariant (空域不变)</strong> 的滤波器，即同一个 Kernel 在整张图像的不同位置逐行滑动 (Scan) 并进行相同的计算。</p>
+  </li>
+  <li>
+    <p><strong>边界处理 (Border Handling)</strong>: 当 Kernel 滑动到图像边缘时，会超出边界。常见的处理方法包括 <strong>Zero padding (补零)</strong> ，或者直接复制边缘的真实像素值 (Copy value)。</p>
+  </li>
+  <li>
+    <p><strong>基础滤波器类型</strong>:</p>
+
+    <ul>
+      <li><strong>Box filter (盒式滤波)</strong>: 窗口内所有像素的权重相同，进行简单的平均。</li>
+      <li><strong>Gaussian filter (高斯滤波)</strong>: 权重由中心向外呈高斯函数衰减，离中心越近权重越大。为了保持图像整体亮度不变，所有权重相加必须 <strong>Normalize (归一化)</strong> 为 1。相比 Box filter，高斯滤波在平滑图像的同时，对细节 (Detail) 的保留效果往往略有不同。</li>
+      <li><strong>Identity mapping &amp; Translation</strong>: 若 Kernel 中心为 1 其余为 0，图像不变；若右侧为 1 其余为 0，可实现图像整体向右平移。</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>巧用滤波 (Trick)</strong>: 比如制作 PPT 里文字的 <strong>Soft shadow (柔和阴影)</strong> ，只需将文字图层做一个 Gaussian blur，然后向右下方平移一点叠在原图层之下即可。</p>
+  </li>
+</ul>
+
+<h4 id="2-edge-detection">2. Edge Detection</h4>
+
+<p>提取图像的边缘和轮廓是经典的计算机视觉任务，其核心数学工具是 <strong>Derivative (导数 / 梯度)</strong> 。</p>
+
+<ul>
+  <li>
+    <p><strong>离散求导与 Noise (噪声) 困境</strong>: 图像的边缘本质上是像素值发生巨大“跳跃”的地方。对于离散的像素网格，我们可以用相邻像素做差分（如 1x3 的 filter）来近似求导。但真实图像充满 <strong>Noise (噪声)</strong> ，直接求导会导致微小的噪声也被放大为极高的梯度，使得真正的边缘被淹没。</p>
+  </li>
+  <li>
+    <p><strong>Derivative of Gaussian (DoG)</strong>: 安全的做法是先用高斯滤波 (Gaussian filter) 平滑掉噪声 (Smooth out noise)，然后再求导。在数学上，“先卷积再求导”等价于“先对 Kernel 求导再进行卷积”。因此，我们可以直接使用 <strong>Derivative of Gaussian (DoG)</strong> 滤波器一步到位，既平滑了噪声又提取了梯度。</p>
+  </li>
+  <li>
+    <p><strong>Sobel Filter</strong>: 经典实用的边缘检测算子。它是一个 3x3 的矩阵，本质上是结合了在一个方向上的 Blur 和在正交方向上的 Derivative。通过水平和垂直的 Sobel filter，我们可以分别计算出 X 方向和 Y 方向的梯度。</p>
+  </li>
+  <li>
+    <p><strong>Gradient Amplitude (梯度幅值)</strong>: 寻找边缘时，我们往往只关心边缘的强弱而不是具体方向。通过对 X 和 Y 梯度的平方和开根号，可以得到整体的 Amplitude。只要 Amplitude 够大，我们就认为这里有一条 Edge。</p>
+  </li>
+  <li>
+    <p><strong>Non-maximum suppression (非极大值抑制)</strong>: 滤波找出的边缘往往会有好几个像素宽。为了得到单像素宽 (Single pixel wide) 的精准边缘，我们会沿着边缘的法向去对比相邻像素：只有当该像素的 Amplitude 大于它两边的邻居时，才保留它 (即局部最大值)，否则将其剔除 (Suppress)。</p>
+  </li>
+</ul>
+
+<h4 id="3-edge-preserving-filters---bilateral-filter">3. Edge-Preserving Filters - Bilateral Filter</h4>
+
+<ul>
+  <li>
+    <p><strong>Gaussian Blur 的缺陷</strong>: 传统高斯滤波会无差别地混合邻域内的像素。如果在黑白分明的边缘处进行高斯滤波，黑白像素会被强行平均，导致本该锐利的边缘变成模糊的过渡带。我们希望只平均同类的像素（白跟白平滑，黑跟黑平滑）。</p>
+  </li>
+  <li>
+    <p><strong>Bilateral Filter 的原理</strong>: 它属于 <strong>Spatially-variant (空域可变)</strong> 的滤波器，其 Kernel 形状会根据图像内容自适应改变。它在权重计算中引入了两个高斯函数的乘积：</p>
+
+    <ul>
+      <li><strong>Spatial distance (空域距离)</strong>: 像素在空间位置上越近，权重越大。</li>
+      <li><strong>Range distance (值域 / 像素值差异)</strong>: 两个像素的 Intensity (亮度/颜色) 越接近，权重才越大。</li>
+      <li><strong>结果</strong>: 只有距离近且颜色相近的像素才会被拿来做加权平均。这样既平滑了均质区域内的噪声，又完美保留了跨越边缘的突变结构，实现了 <strong>Edge-preserving (保边)</strong> 。</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Bilateral Filter 的应用</strong>:</p>
+
+    <ul>
+      <li><strong>Detail enhancement (细节增强)</strong>: 将原图减去 Bilateral filter 平滑后的图，能分离出纯粹的 Detail (细节)，然后将 Detail 乘上一个系数加回原图，即可增强细节。</li>
+      <li><strong>Tone mapping (色调映射)</strong>: 将拍好的 <strong>HDR (高动态范围)</strong> 图像压缩到 0-255 范围内显示时，直接压缩亮度会导致画面灰暗、颜色丧失。使用 Bilateral filter，可以在保留 Color 和 Detail 层不变的前提下，仅仅平滑并压缩 Large scale / Base signal (基础光照起伏)，从而得到色彩鲜艳且细节丰富的无晕影 (No halo) 显示效果。</li>
+      <li><strong>Stylization (风格化)</strong>: 通过反复平滑和强化边缘，可以制作出类似于水彩画 (Watercolor) 的艺术风格效果。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="4-advanced-filters">4. Advanced Filters</h4>
+
+<p>为了解决极端噪声或计算速度问题，Bilateral Filter 衍生出了更高级的形态：</p>
+
+<ul>
+  <li><strong>Joint Bilateral Filter (联合双边滤波)</strong>
+    <ul>
+      <li><strong>应用场景 (Flash/No-flash photography)</strong>: 在暗光下，不开闪光灯拍的图氛围好但 Noise 极高；开闪光灯拍的图没 Noise 且边缘清晰，但颜色氛围全毁且可能有高光斑 (Highlight)。</li>
+      <li><strong>核心思想</strong>: 在对充满噪声的暗光图 (Ambient image) 做双边滤波时，如果直接用原图算 Range distance，噪声会干扰相似度的计算。因此，利用另一张配准好的无噪声闪光灯图 (Flash image) 作为 <strong>Reference/Guide</strong> 来计算 Range distance (像素相似度) 权重，再把这个权重应用到暗光图的像素平均上，从而完美结合两者的优点。</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Guided Filter (导向滤波)</strong>:</p>
+
+    <ul>
+      <li><strong>动机</strong>: Bilateral filter 虽然好，但由于 Kernel 是非线性的，计算复杂度高达 $O(NR^2)$ (N 是像素数，R 是窗口大小)，在处理大窗口或千万像素图像时极慢。</li>
+      <li><strong>特性</strong>: Guided filter 引入了一张 <strong>Guide image</strong> (引导图，可以是原图本身)。它通过极其巧妙的数学设计（利用局部窗口内的 Mean 和 Variance 均值与方差），实现了与 Bilateral filter 高度相似的 Spatially-variant 保边滤波效果。</li>
+      <li><strong>最大优势</strong>: 其计算时间复杂度是严格的 $O(N)$，与滤波窗口大小 $R$ 无关，计算速度有了质的飞跃。</li>
+    </ul>
+  </li>
+</ul>
+
+</body>
+</html>

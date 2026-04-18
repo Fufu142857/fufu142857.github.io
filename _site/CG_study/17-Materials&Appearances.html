@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Materials and Appearances | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="materials-and-appearances">Materials and Appearances</h3>
+
+<h4 id="一-什么是材质-what-is-material">一、 什么是材质 (What is Material)?</h4>
+<p>在计算机图形学中，不同的材质在光照下会表现出不同的外观（Appearance）。光线到达人眼让我们看到物体，而在这个过程中，光线与物体表面的相互作用方式就定义了该物体的材质。</p>
+<ul>
+  <li>在渲染方程（Rendering Equation）中，决定光线如何被反射的项是 <strong>双向反射分布函数 (BRDF)</strong>。</li>
+  <li>因此，在图形学中，我们得出一个极其重要的结论：<strong>材质 == BRDF (Material == BRDF)</strong>。</li>
+</ul>
+
+<h4 id="二-漫反射材质-diffuse--lambertian-material">二、 漫反射材质 (Diffuse / Lambertian Material)</h4>
+<p>漫反射材质是指光线照射到该表面后，会被均匀地向四面八方散射的材质。</p>
+<ul>
+  <li><strong>能量守恒推导</strong>：假设一束亮度均匀的光（Radiance 为常数）照射到一个理想的不吸收任何光线的纯白漫反射表面上，为了满足能量守恒，它反射出去的 Radiance 必须等于入射的 Radiance。</li>
+  <li>将其代入渲染方程并对半球面积分，由于入射光和 BRDF（常数）都可以提出积分号，半球上余弦函数的积分结果为 $\pi$。</li>
+  <li>由此推导出，理想不吸收光线的漫反射 BRDF 的值为 <strong>$1/\pi$</strong>，而不是 1。</li>
+  <li><strong>反照率 (Albedo)</strong>：为了表示不同颜色的漫反射表面（即会吸收特定波长的光），我们引入了反照率 $\rho$（取值范围在 0 到 1 之间，可包含 RGB 三个通道）。因此，漫反射的 BRDF 公式为：<strong>$f_r = \rho / \pi$</strong>。</li>
+</ul>
+
+<h4 id="三-折射与全反射-refraction--total-internal-reflection">三、 折射与全反射 (Refraction &amp; Total Internal Reflection)</h4>
+<p>除反射外，像水和玻璃这类透明材质，光线进入时会发生折射（Refraction）。这类既包含反射又包含折射的材质分布函数统称为 <strong>BSDF (Bidirectional Scattering Distribution Function)</strong>。</p>
+<ul>
+  <li><strong>折射定律 (Snell’s Law)</strong>：入射角 $\theta_i$ 与折射角 $\theta_t$ 满足关系 $\eta_i \sin\theta_i = \eta_t \sin\theta_t$，其中 $\eta$ 为介质的<strong>折射率 (Index of Refraction, IOR)</strong>。例如真空为 1，水约为 1.33，玻璃约为 1.5，钻石高达 2.42（折射率极高，造成璀璨的色散效果）。</li>
+  <li><strong>全反射 (Total Internal Reflection)</strong>：当光线从光密介质射向光疏介质（即 $\eta_i &gt; \eta_t$ 时），根据公式推导，可能会出现根号下为负数的无意义解，这代表没有光线被折射，所有能量都被反射回原介质中，这就是全反射。</li>
+  <li><strong>斯涅尔窗 (Snell’s Window / Circle)</strong>：在水下往上看时，因为全反射效应，只能在一个有限的角度内（约 97.2 度）看到水面外的世界，超出这个角度看到的全是水底的反射。</li>
+</ul>
+
+<h4 id="四-菲涅尔项-fresnel-term">四、 菲涅尔项 (Fresnel Term)</h4>
+<p>菲涅尔项描述了物体表面反射的能量比例，这个比例不仅与材质有关，还高度依赖于<strong>观察视角（入射角度）</strong>。</p>
+<ul>
+  <li><strong>掠射角反射极强</strong>：当你垂直向下（0度）看一本书或玻璃时，反射极弱，你能看透它；但当你视线几乎与表面平行（Grazing angle 掠射角，接近 90度）时，表面会像镜子一样反射出强烈的光（如看前排车窗的反射）。</li>
+  <li><strong>绝缘体 (Dielectric) 与 导体 (Conductor)</strong>：绝缘体（如玻璃）的反射率随角度变化很大，且垂直时反射率很低；而导体（金、铜等金属）即使在垂直视角下也有很高的反射率，这也是我们用金属做镜子的原因。</li>
+  <li><strong>Schlick 近似公式 (Schlick’s Approximation)</strong>：精确计算菲涅尔项非常复杂，因此工业界广泛使用一个极其优秀的近似公式：$R(\theta) = R_0 + (1-R_0)(1-\cos\theta)^5$，其中 $R_0 = (\frac{n_1 - n_2}{n_1 + n_2})^2$ 代表基础反射率。</li>
+</ul>
+
+<h4 id="五-微表面模型-microfacet-material">五、 微表面模型 (Microfacet Material)</h4>
+<p>微表面模型是现代基于物理的渲染（PBR）的核心，具有极强的真实感表现力。</p>
+<ul>
+  <li><strong>核心假设</strong>：从宏观（Macroscale）远处看，表面是平滑且具有特定材质特征的（如粗糙的）；但从微观（Microscale）近处看，表面是由无数凹凸不平的小平面组成的，且<strong>每一个微小的平面（微表面）都是一面完美的镜子</strong>。</li>
+  <li><strong>法线分布决定粗糙度</strong>：如果微表面的法线分布非常集中（都指向宏观法线方向），材质在宏观上表现为光滑（Glossy）；如果微表面的法线分布非常分散，材质在宏观上表现为漫反射（Diffuse）。</li>
+  <li><strong>微表面 BRDF 公式</strong>：<strong>$f(i,o) = \frac{F(i,h)G(i,o,h)D(h)}{4(n \cdot i)(n \cdot o)}$</strong>
+    <ul>
+      <li><strong>$D(h)$ (法线分布 / Distribution of normals)</strong>：查询微表面中，有多少比例的法线刚好指向半程向量（Half vector, $h$）方向。只有这类微表面才能将入射光完美反射到观察方向。</li>
+      <li><strong>$F(i,h)$ (菲涅尔项 / Fresnel term)</strong>：计算这些有效的微表面能反射出多少比例的能量。</li>
+      <li><strong>$G(i,o,h)$ (几何遮蔽项 / Shadowing-masking term)</strong>：由于微表面凹凸不平，在光线接近平行（掠射角）入射时，微表面之间会互相遮挡（自阴影）。$G$ 项专门用来修正这一问题，防止边缘过度高光变亮。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="六-各向同性与各向异性材质-isotropic--anisotropic-materials">六、 各向同性与各向异性材质 (Isotropic / Anisotropic Materials)</h4>
+<p>通过微表面分布的方向性，可以将材质分为两类：</p>
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td><strong>各向同性 (Isotropic)</strong>：微表面的法线没有明显的排列方向（例如普通的圆球高光）。在 BRDF 表现上，如果在其方位角（Azimuthal angle）上进行绝对旋转，BRDF 的值保持不变，只与入射出射光的**相对方位角差异 ($</td>
+          <td>\phi_r - \phi_i</td>
+          <td>$)** 有关。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><strong>各向异性 (Anisotropic)</strong>：微表面的排布具有强烈的方向性特征，例如被顺着同一方向打磨过的拉丝金属（Brushed metal）、尼龙（Nylon）、天鹅绒（Velvet）或光盘的背面。各向异性材质的高光形状通常是拉长或呈现特殊条纹的，其 BRDF 会随着绝对方位角的旋转而改变。</li>
+</ul>
+
+<h4 id="七-brdf-的基本性质-properties-of-brdfs">七、 BRDF 的基本性质 (Properties of BRDFs)</h4>
+<p>所有符合物理规律的 BRDF 必须满足以下数学属性：</p>
+<ol>
+  <li><strong>非负性 (Non-negativity)</strong>：BRDF 值永远大于等于 0（无负能量）。</li>
+  <li><strong>线性 (Linearity)</strong>：场景的 BRDF 可以拆分成几个部分（如漫反射 + 高光）分别计算后再相加，结果保持一致。</li>
+  <li><strong>可逆性 (Reciprocity principle)</strong>：交换入射方向 $\omega_i$ 和出射方向 $\omega_r$，BRDF 的计算结果严格相等，即 $f_r(\omega_i \to \omega_r) = f_r(\omega_r \to \omega_i)$。</li>
+  <li><strong>能量守恒 (Energy conservation)</strong>：经过 BRDF 反射的能量积分总和绝不会超过入射的总能量，即 $\int f_r \cos\theta_i d\omega_i \le 1$。</li>
+</ol>
+
+<h4 id="八-brdf-的测量-measuring-brdfs">八、 BRDF 的测量 (Measuring BRDFs)</h4>
+<p>由于数学近似模型始终难以完美匹配现实世界的复杂反射特质（例如真实测量的菲涅尔项极为复杂），图形学引入了使用测量仪器来直接获取真实材质 BRDF 的方法。</p>
+<ul>
+  <li><strong>测量仪器 (Gonioreflectometer)</strong>：这是一种巨型精密仪器，利用机械臂在球面上不断改变光源的位置（入射角）和相机的采集位置（出射角），穷举式地测量出每一对方向下的辐射数据。</li>
+  <li><strong>数据库 (MERL BRDF Database)</strong>：这是业界极具影响力的真实材质数据库，包含了大量的各向同性材质测量数据。通过利用各向同性和可逆性等属性，可以将原本极度庞大的 4D 测量数据降维并压缩，存储为 3D 数组供渲染引擎调用。</li>
+</ul>
+
+</body>
+</html>

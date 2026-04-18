@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transformation | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="transformation">Transformation</h3>
+
+<h4 id="一-为什么要学习-transformation-变换">一、 为什么要学习 Transformation (变换)？</h4>
+<p>在计算机图形学中，变换的应用极其广泛，主要体现在以下两个核心场景：</p>
+<ol>
+  <li><strong>Modeling (模型变换)</strong>:在构建和操作三维模型或场景时，我们需要用到平移、缩放（Scale）和旋转（Rotation）等变换。例如让机器人的各个关节运动，或者像皮克斯（Pixar）动画中经典的小台灯跳跃并产生形变（如压扁、拉伸）的过程，都是通过变换来实现的。</li>
+  <li><strong>Viewing (视图变换)</strong>:将三维世界（3D World）中的场景投影（Projection）到二维屏幕（2D Image）上，这也是一种极其重要的变换操作。</li>
+</ol>
+
+<h4 id="二-二维空间中的基础变换-2d-transformations">二、 二维空间中的基础变换 (2D Transformations)</h4>
+<p>在二维平面中，我们可以利用矩阵乘法（Matrix-Vector Multiplication）来表示各种变换。</p>
+
+<ol>
+  <li>
+    <p><strong>Scale (缩放)</strong>:改变物体的大小。如果是均匀缩放，横坐标 $x$ 和纵坐标 $y$ 乘以相同的系数；如果是非均匀缩放（Non-Uniform Scale），则分别乘以不同的系数 $s_x$ 和 $s_y$。缩放可以用一个对角矩阵（Diagonal Matrix）来表示：$\begin{bmatrix} s_x &amp; 0 \ 0 &amp; s_y \end{bmatrix}$。</p>
+  </li>
+  <li>
+    <p><strong>Reflection (反射/对称)</strong>:将物体沿着某一个轴进行镜像反转。例如沿着 Y 轴做对称，原坐标 $(x,y)$ 会变成 $(-x, y)$，其对应的矩阵为 $\begin{bmatrix} -1 &amp; 0 \ 0 &amp; 1 \end{bmatrix}$。</p>
+  </li>
+  <li>
+    <p><strong>Shear (切变)</strong>:如同拉拽一个有弹性的正方形的顶部边缘，使其产生倾斜变形。在水平切变中，物体底边（$y=0$）的横坐标不变，而顶边（$y=1$）的横坐标会平移一个距离 $a$，纵坐标 $y$ 始终保持不变。其矩阵表示为 $\begin{bmatrix} 1 &amp; a \ 0 &amp; 1 \end{bmatrix}$。</p>
+  </li>
+  <li>
+    <p><strong>Rotation (旋转)</strong>:在不特别说明的情况下，图形学中的旋转默认是<strong>绕着原点 (0,0)</strong> 进行的，且默认方向为<strong>逆时针 (Counter-Clockwise, CCW)</strong> 。将一点逆时针旋转 $\theta$ 角的矩阵 $R_\theta$ 为 $\begin{bmatrix} \cos\theta &amp; -\sin\theta \ \sin\theta &amp; \cos\theta \end{bmatrix}$。我们可以通过代入特殊的点（如 $(1,0)$ 和 $(0,1)$）来轻松推导并验证这个旋转矩阵。</p>
+  </li>
+</ol>
+
+<p>以上所有的变换，都可以写成 $x’ = M x$ 的形式（即一个新的坐标等于一个矩阵乘以原坐标），这类可以用同维度矩阵乘法表示的变换被称为 <strong>Linear Transform (线性变换)</strong> 。</p>
+
+<h4 id="三-平移的困境与-homogeneous-coordinates-齐次坐标">三、 平移的困境与 Homogeneous Coordinates (齐次坐标)</h4>
+<ul>
+  <li><strong>平移 (Translation) 不是线性变换</strong>:当我们想把点 $(x,y)$ 平移 $(t_x, t_y)$ 时，坐标会变为 $(x+t_x, y+t_y)$。这个操作无法写成简单的 $2 \times 2$ 矩阵相乘，必须写成一个矩阵乘法再加上一个平移向量的形式。</li>
+  <li><strong>引入齐次坐标</strong>:为了不把平移当作特殊情况处理，人们希望找到一种统一的方式来表示所有的变换（包括线性变换和平移）。为此，图形学引入了 <strong>Homogeneous Coordinates (齐次坐标)</strong> ，即给二维坐标增加一个额外的维度（w-coordinate）。
+    <ul>
+      <li><strong>二维 Point (点)</strong> 表示为：$(x, y, 1)^T$。</li>
+      <li><strong>二维 Vector (向量)</strong> 表示为：$(x, y, 0)^T$。</li>
+    </ul>
+  </li>
+  <li><strong>为什么向量的 w 坐标是 0？</strong>:因为向量只表示方向和长度，具有<strong>平移不变性 (Translation Invariance)</strong> 。将其末尾设为 0，可以保证向量在乘以带有平移信息的矩阵时，数值不受平移量的影响，依然是原来的向量。</li>
+  <li><strong>齐次坐标下的运算意义</strong>:
+    <ul>
+      <li>Vector + Vector = Vector (因为 $0+0=0$)</li>
+      <li>Point - Point = Vector (因为 $1-1=0$，表示从一点指向另一点的向量)</li>
+      <li>Point + Vector = Point (因为 $1+0=1$，表示点沿向量移动到一个新点)</li>
+      <li>Point + Point 的含义：两个点相加得出的 $w$ 坐标为 $2$。在齐次坐标的定义中，对于任何 $w \neq 0$，$(x, y, w)$ 实际上表示的是真正的二维点 $(x/w, y/w, 1)$。因此，两点相加除以 $2$ 后，表示的是这两点的<strong>中点 (Midpoint)</strong> 。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="四-affine-transformations-仿射变换">四、 Affine Transformations (仿射变换)</h4>
+<p>将 Linear Transform (线性变换) 和 Translation (平移) 结合在一起，就构成了 <strong>Affine Transformations (仿射变换)</strong> 。</p>
+
+<p><strong>Affine do transform first, then translation.</strong></p>
+
+<p>在引入齐次坐标后，所有的二维仿射变换都可以完美地整合进一个 $3 \times 3$ 的矩阵中：</p>
+<ul>
+  <li>这个 $3 \times 3$ 矩阵的最下面一行固定为 $0 0 1$。</li>
+  <li>左上角的 $2 \times 2$ 区域对应着原本的线性变换（如缩放、旋转、切变）。</li>
+  <li>最右侧一列的前两个元素 $t_x, t_y$ 则专门用于控制平移量。
+这样一来，我们仅需付出增加少量存储空间的代价，就统一了所有变换的数学表达形式。</li>
+</ul>
+
+<h4 id="五-变换的操作与组合-composing-transforms">五、 变换的操作与组合 (Composing Transforms)</h4>
+<ol>
+  <li><strong>Inverse Transform (逆变换)</strong>:如果在空间中执行了一个变换，然后想撤销它，我们需要应用其逆变换。在数学上，这完美对应于乘以该变换矩阵的<strong>逆矩阵 (Inverse Matrix, $M^{-1}$)</strong> 。
+    <blockquote>
+      <p>逆变化对应撤销。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p><strong>变换的顺序至关重要 (Ordering Matters)</strong>:复杂的变换可以通过一系列基础变换组合而成，但是<strong>先旋转再平移</strong>与<strong>先平移再旋转</strong>得到的结果是完全不同的。这正对应了矩阵乘法<strong>不满足交换律 (Not Commutative)</strong> 的性质。</p>
+  </li>
+  <li>
+    <p><strong>矩阵的从右向左应用</strong>:因为我们将坐标表示为列向量，所以当对一个点依次进行多个变换（如先应用 $A_1$，再应用 $A_2$）时，矩阵应写在向量的左侧，即 $A_2 \cdot A_1 \cdot \text{Vector}$。变换的应用顺序是<strong>从右向左 (Right to left)</strong> 的。</p>
+  </li>
+  <li><strong>变换的结合律与性能优化</strong>:由于矩阵乘法满足<strong>结合律 (Associative)</strong> ，在实际计算中，如果有成百上千个点都需要经过同一序列的多个变换，我们可以<strong>预先将这些变换矩阵相乘 (Pre-multiply)</strong> 。无论合并多少个 $3 \times 3$ 矩阵，最终得到的仍是一个能够代表这套复杂组合变换的单个 $3 \times 3$ 矩阵，这在工程上极大地提升了计算性能。</li>
+</ol>
+
+<h4 id="六-变换的分解应用案例-decomposing-transforms">六、 变换的分解应用案例 (Decomposing Transforms)</h4>
+<p>如果我们需要让物体<strong>绕着任意指定点 $c$ 进行旋转</strong>（而不是默认的原点），可以利用变换的组合与分解思想来解决：</p>
+<ol>
+  <li>首先，进行平移变换 $T(-c)$，将旋转中心点 $c$ 移动到原点。</li>
+  <li>然后，执行标准的绕原点旋转 $R(\theta)$。</li>
+  <li>最后，再进行平移变换 $T(c)$，把点移回原来的位置。
+写成完整的矩阵形式即为从右向左连乘：$M = T(c) \cdot R(\theta) \cdot T(-c)$。</li>
+</ol>
+
+<h4 id="七-扩展到三维变换-3d-transformations">七、 扩展到三维变换 (3D Transformations)</h4>
+<p>三维空间中的变换完全可以类比二维来进行扩展。</p>
+<ul>
+  <li><strong>3D Point (点)</strong>:$(x, y, z, 1)^T$。</li>
+  <li><strong>3D Vector (向量)</strong>:$(x, y, z, 0)^T$。</li>
+  <li>对于一般的 $(x, y, z, w)$，它表示的三维空间点为 $(x/w, y/w, z/w, 1)$。</li>
+  <li>在三维空间中，我们使用 ** $4 \times 4$ 矩阵** 来表示 Affine Transformations (仿射变换)。其最后一行同样是固定的 $0 0 0 1$；左上角 $3 \times 3$ 的区域代表 3D 线性变换；最右侧一列的顶部三个元素代表沿 x、y、z 轴的平移。在使用这个 $4 \times 4$ 矩阵乘法时，其等价的逻辑永远是<strong>先进行线性变换，然后再进行平移</strong> 。</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geometry 1 (Introduction) | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="geometry-1-introduction">Geometry 1 (Introduction)</h3>
+
+<h4 id="一-纹理的高级应用-applications-of-textures">一、 纹理的高级应用 (Applications of Textures)</h4>
+<p>在现代 GPU 中，纹理 (Texture) 不仅仅是一张用来贴在物体表面的彩色图片，它可以被理解为<strong>一块内存</strong>，并且支持快速的范围查询与滤波计算。因此，纹理可以用来存储和表示各种各样的属性。</p>
+
+<p><strong>1. 环境光贴图 (Environment Map)</strong></p>
+<ul>
+  <li><strong>概念</strong>：我们可以将来自四面八方的环境光照信息记录在一张纹理贴图上，用来渲染具有反射性质的物体（如光滑的金属球或犹他茶壶 Utah Teapot），使其能够真实地反射出周围的环境。它假设环境光源距离我们无限远，只记录光线的方向信息，不记录深度。</li>
+  <li><strong>Spherical Environment Map (球面环境贴图)</strong>：将环境光记录在一个球面上并将其展开。这种方法的缺陷是展开为平面 2D 贴图后，会在靠近顶部和底部（极点）的区域产生严重的<strong>扭曲 (Distortion)</strong>。</li>
+  <li><strong>Cube Map (立方体贴图)</strong>：为了解决球面展开的扭曲问题，我们利用一个包围球体的立方体 (Bounding Box) 来记录光照。将球心与光照方向连线并延伸，打在立方体的六个面上。这样只需存储 6 张正方形的纹理贴图，极大地减少了扭曲，但在查询某个方向的光照时，需要额外计算该方向打在六个面中的哪一个面上。</li>
+</ul>
+
+<p><strong>2. 凹凸贴图与法线贴图 (Bump Mapping / Normal Mapping)</strong></p>
+<ul>
+  <li><strong>核心思想</strong>：为了表现物体表面复杂的凹凸细节（如橘子皮的坑洼），如果直接用成千上万个微小的三角形来建模，计算成本将极其高昂。<strong>凹凸贴图</strong>通过一张纹理来定义表面上任何一个点的<strong>相对高度差</strong>。</li>
+  <li><strong>工作原理</strong>：它<strong>并没有真正改变物体的几何形状</strong>（即没有移动三角形顶点），而是通过纹理定义的高度差来计算出该点局部的梯度，从而<strong>扰动并重新计算出一个“假的”表面法线 (Normal)</strong>。带有新法线的表面在进行着色 (Shading) 计算时，会产生明暗的对比变化，从而“欺骗”人眼，让我们产生表面凹凸不平的错觉。</li>
+  <li><strong>法线计算</strong>：在一维 (Flatland) 情况下，如果原点法线是 $(0,1)$，通过相邻点的高度差计算出导数 $dp$，其切线为 $(1, dp)$，将切线逆时针旋转 90 度并归一化即可得到新的法线 $(-dp, 1)$。在三维情况下，分别求出 $U$ 和 $V$ 方向的偏导数，即可推导出扰动后的新法线。</li>
+</ul>
+
+<p><strong>3. 位移贴图 (Displacement Mapping)</strong></p>
+<ul>
+  <li><strong>区别于凹凸贴图</strong>：位移贴图使用与凹凸贴图完全相同的纹理输入，但它<strong>实际上真的移动了网格顶点的几何位置</strong>。因此，位移贴图在物体边缘和自身阴影的展现上要比凹凸贴图真实得多。</li>
+  <li><strong>代价</strong>：它要求模型自身的三角形被划分得足够细小（采样率必须跟得上纹理的变化频率）。现代图形 API（如 DirectX）提供了<strong>动态曲面细分 (Dynamic Tessellation)</strong> 技术，允许先输入粗糙的模型，并在渲染过程中根据需要动态地将三角形拆分成更细小的碎片。</li>
+</ul>
+
+<p><strong>4. 三维程序化噪声与预计算着色 (3D Textures &amp; Precomputed Shading)</strong></p>
+<ul>
+  <li><strong>3D Procedural Noise (三维程序化噪声)</strong>：纹理不一定要是 2D 的图片。空间中可以定义一个三维的噪声函数（如广泛应用的 Perlin Noise），给定空间中任意点 $(x,y,z)$，都能通过解析式算出一个值。常被用来生成大理石纹理、木纹或模拟山脉的起伏。三维纹理也广泛应用于医学图像的<strong>体渲染 (Volume Rendering)</strong>（如 CT、核磁共振数据）中。</li>
+  <li><strong>预计算阴影 (Ambient Occlusion Texture Map)</strong>：可以将一些复杂的着色计算结果（如环境光遮蔽造成的微小阴影）提前计算好并存入纹理中，渲染时直接用着色结果乘上该纹理的值即可，极大提高了实时渲染效率。</li>
+</ul>
+
+<h4 id="二-几何的引入-introduction-to-geometry">二、 几何的引入 (Introduction to Geometry)</h4>
+<p>计算机图形学中的几何极其复杂。从光滑的汽车曲面，到具有分级结构的布料纤维（纤维拧成股，股拧成线），再到液体的飞溅、包含上亿细节的巨大城市，以及微观下的细胞和毛发，几何无处不在且形态各异。面对不同种类的几何形体，图形学发展出了两类核心的表达方式：<strong>隐式几何 (Implicit Geometry)</strong> 和 <strong>显式几何 (Explicit Geometry)</strong>。</p>
+
+<h4 id="三-隐式几何表达-implicit-representations">三、 隐式几何表达 (Implicit Representations)</h4>
+<p>隐式几何不直接告诉我们具体的点在哪里，而是给出一个满足特定关系的表达式。最典型的形式是 $f(x,y,z) = 0$。只要空间中某一点的坐标代入该函数结果为 0，就说明该点在这个几何表面上。</p>
+
+<p><strong>1. 常见的隐式表达方法</strong></p>
+<ul>
+  <li><strong>代数曲面 (Algebraic Surfaces)</strong>：直接用数学公式（如求和多项式）表达的几何体（如 $x^2 + y^2 + z^2 - 1 = 0$ 表示单位球）。对于复杂形状极难写出公式。</li>
+  <li><strong>构造实体几何 (Constructive Solid Geometry, CSG)</strong>：通过对基本的几何体（如球体、圆柱体、立方体）进行<strong>布尔运算</strong>（如求并集 Union、交集 Intersection、差集 Difference），来组合构建出非常复杂的新几何体。广泛应用于工业建模软件中。</li>
+  <li><strong>距离函数 (Distance Functions, SDF)</strong>：不直接描述表面，而是定义空间中任何一点到目标几何体表面的<strong>最小距离</strong>。通常使用带符号的距离函数（Signed Distance Function, SDF），约定物体外部距离为正，内部为负，表面为 0。
+    <ul>
+      <li><strong>SDF 的融合 (Blending)</strong>：对于运动或形态发生融合的物体（如两滴水珠靠近并融合），直接对它们的黑白遮罩图像进行线性插值会导致半透明的错误结果。但如果提取出它们各自的距离函数（SDF）进行线性插值，然后再把结果为 0 的部分提取为新的边界，就能得到极为平滑、真实的拓扑渐变与融合效果。</li>
+    </ul>
+  </li>
+  <li><strong>水平集方法 (Level Set Methods)</strong>：与距离函数思想类似，只是不写出解析表达式，而是将空间划分成网格 (Grid)，并在网格的顶点上存储数值。通过插值找出数值等于 0（或其他指定值）的轮廓面。这与地理学中的“等高线”原理一致。在模拟水滴融合或医学 CT 扫描表面提取时极为有效。</li>
+  <li><strong>分形 (Fractals)</strong>：一种展示出“自相似性 (Self-similarity)”的几何描述，即局部与整体具有相似的形态特征（如雪花或 Romanesco 花椰菜）。擅长描述自然现象，但在渲染时极易引起走样 (Aliasing)。</li>
+</ul>
+
+<p><strong>2. 隐式几何的优缺点 (Pros &amp; Cons)</strong></p>
+<ul>
+  <li><strong>优点</strong>：
+    <ol>
+      <li>描述极其紧凑，通常只需存一个函数或少量数据，占用内存极小。</li>
+      <li><strong>极易判断点在物体的内部还是外部 (Inside/Outside Test Easy)</strong>。只需将点坐标代入函数，判断结果是大于 0 还是小于 0 即可。</li>
+      <li>非常容易处理几何拓扑结构的改变（如流体撕裂或融合）。</li>
+      <li>极易与光线进行求交计算（后续光线追踪课程重点探讨）。</li>
+    </ol>
+  </li>
+  <li><strong>缺点</strong>：
+    <ol>
+      <li>非常难以对复杂的、不规则的形体（如动物模型）进行建模。</li>
+      <li><strong>极其难以获取物体表面的所有点 (Sampling Can Be Hard)</strong>。仅仅看着一个复杂的隐式函数，你根本不知道它长什么样子，也很难把表面的所有点枚举出来。</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="四-显式几何表达-explicit-representations">四、 显式几何表达 (Explicit Representations)</h4>
+<p>显式几何的特点是，它的所有点要么是<strong>直接给出的</strong>（例如三角形网格），要么是通过<strong>参数映射 (Parameter Mapping)</strong> 给出的。</p>
+<ul>
+  <li><strong>参数映射</strong>：定义一个二维平面参数（如 $U$ 和 $V$），通过一组映射函数 $f(u,v)$，直接得出空间中的三维坐标 $(x,y,z)$。只要把二维平面上的所有 UV 坐标遍历一遍，就能在三维空间中画出所有的点。</li>
+</ul>
+
+<p><strong>显式几何的优缺点</strong>：</p>
+<ul>
+  <li>与隐式几何完全相反。</li>
+  <li><strong>优点</strong>：非常容易采样或获取表面的所有点，我们可以非常轻松地知道这个几何体长什么样子并把它画出来。</li>
+  <li><strong>缺点</strong>：<strong>极其难以判断空间中任意一点是在物体的内部还是外部</strong>，仅凭显式表达式几乎无从下手，除非将形状完全绘制出来进行复杂的空间计算。</li>
+</ul>
+
+</body>
+</html>

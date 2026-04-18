@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ray Tracing 2 (Acceleration &amp; Radiometry) | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="ray-tracing-2-acceleration--radiometry">Ray Tracing 2 (Acceleration &amp; Radiometry)</h3>
+
+<h4 id="一-课程引入与行业趋势">一、 课程引入与行业趋势</h4>
+<p>在正式探讨光线追踪的高级技术之前，课程提到了一些工业界的最新进展，例如 NVIDIA 发布的 DLSS 2.0（通过深度学习将低分辨率图像无损放大至高分辨率）以及 RTXGI（实时全局光照）技术。这反映了一个核心趋势：<strong>曾经只用于离线渲染（Offline Rendering）的高级光线追踪技术，正逐渐被应用到实时渲染（Real-time Rendering）领域中</strong>。</p>
+
+<h4 id="二-光线追踪加速结构-1均匀网格-uniform-grids">二、 光线追踪加速结构 1：均匀网格 (Uniform Grids)</h4>
+<p>为了加速光线与场景中物体的求交计算，我们不需要让光线与每个多边形逐一测试，而是可以引入空间网格机制。</p>
+
+<ul>
+  <li><strong>预处理阶段 (Preprocess)</strong>：首先，找到包含整个场景的最紧密的包围盒（Bounding Box）；然后，将这个包围盒划分为均匀的三维网格（Grid）；最后，标记出所有包含实际物体的网格单元。</li>
+  <li><strong>光线遍历 (Ray Traversal)</strong>：当光线射入场景时，仅需沿着光线传播的方向，依次步进穿越相交的网格单元。只有当光线进入了“被标记为有物体”的网格时，才去和该网格内的实际物体进行求交测试。</li>
+  <li><strong>网格分辨率的选择 (Grid Resolution)</strong>：网格太少起不到加速作用，网格太密则会导致光线与网格本身的求交计算带来过多额外开销。经验上，在三维空间中，合理的网格数量大约是 <code class="language-plaintext highlighter-rouge">27 * 场景内物体数量</code>。</li>
+  <li><strong>均匀网格的局限性</strong>：均匀网格在物体大小和空间分布相对均匀的场景中表现极佳。但是，对于存在大量空白空间的场景（即<strong>“体育场中的茶壶问题 / Teapot in a stadium”</strong>），光线需要遍历大量毫无意义的空白网格才能找到物体，此时均匀网格的加速效率会大打折扣。</li>
+</ul>
+
+<h4 id="三-光线追踪加速结构-2空间划分-spatial-partitions">三、 光线追踪加速结构 2：空间划分 (Spatial Partitions)</h4>
+<p>为了解决均匀网格在稀疏场景下的低效问题，图形学引入了不均匀的<strong>空间划分 (Spatial Partitions)</strong> 技术，主要包括：</p>
+<ol>
+  <li><strong>八叉树 (Oct-Tree)</strong>：将包围盒在长、宽、高三个维度各切一刀，每次一分为八，如果子空间为空则停止划分。但在高维空间中极其复杂。</li>
+  <li><strong>BSP-Tree</strong>：每次选取任意方向的超平面将空间一分为二，但在高维空间中计算极其困难。</li>
+  <li><strong>KD-Tree</strong>：<strong>最经典的轴对齐空间划分方法</strong>。每次严格沿着某一个坐标轴（X、Y、Z轴交替进行）将空间划分为两部分。</li>
+</ol>
+
+<p><strong>KD-Tree 的核心细节与缺陷</strong>：</p>
+<ul>
+  <li><strong>数据结构</strong>：KD-Tree 的内部节点（Internal nodes）只存储划分轴、划分位置以及子节点指针；具体的几何物体仅存储在叶子节点（Leaf nodes）中。</li>
+  <li><strong>光线遍历</strong>：光线首先与包围盒求交，若相交，则递归地与子节点的包围盒求交，直到抵达叶子节点后，再与叶子节点内的实体对象求交。</li>
+  <li><strong>致命缺陷</strong>：
+    <ol>
+      <li><strong>极难判定物体与包围盒的相交关系</strong>：要精准判断一个三角形究竟存在于哪些被切分的包围盒中，在算法实现上极其困难且容易出错。</li>
+      <li><strong>同一个物体可能存在于多个叶子节点中</strong>：因为是对空间进行暴力切分，一个跨越边界的物体会被迫存储在多个相邻的叶子节点内，导致不直观且增加冗余。</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="四-现代加速结构bvh-bounding-volume-hierarchy--层次包围盒">四、 现代加速结构：BVH (Bounding Volume Hierarchy / 层次包围盒)</h4>
+<p>为了彻底解决 KD-Tree 的痛点，业界目前最广泛采用的加速结构是 <strong>BVH（层次包围盒）</strong>。它的核心理念发生了根本转变：<strong>不再去划分空间，而是去划分物体 (Object Partitions)</strong>。</p>
+
+<p><strong>1. BVH 的构建原理 (Building BVHs)</strong></p>
+<ul>
+  <li><strong>核心步骤</strong>：找到所有物体的总包围盒；然后将这些<strong>物体</strong>分为两部分；接着，分别为这两部分物体<strong>重新计算出它们各自的包围盒</strong>；不断递归这一过程，直到节点内的物体数量足够少（例如少于 5 个）则停止划分并形成叶子节点。</li>
+  <li><strong>与 KD-Tree 的本质区别</strong>：BVH 划分的是物体，因此<strong>一个物体永远只存在于一个叶子节点中</strong>。由于分别对物体集合求包围盒，BVH 产生的左右两个<strong>子包围盒在空间上是允许相互重叠（Overlap）的</strong>。</li>
+</ul>
+
+<p><strong>2. 划分的启发式策略 (Heuristics)</strong>
+为了让生成的 BVH 树尽可能平衡且高效，业界总结了两个经典策略：</p>
+<ul>
+  <li><strong>沿着最长的轴进行划分</strong>：这能保证包围盒在多次划分后形状逐渐趋于均匀（横平竖直长度相近）。</li>
+  <li><strong>取中间物体 (Median Object) 作为划分点</strong>：以物体的重心坐标在选中轴上进行排序，找到排在中间位置（中位数）的物体切开，以确保左右两棵子树的物体数量基本相等，从而让树的深度最小。寻找中位数无需对整体进行 $O(N \log N)$ 的排序，利用<strong>快速选择算法 (Quickselect)</strong> 即可在 $O(N)$ 时间复杂度内完成。</li>
+</ul>
+
+<p><strong>3. BVH 的遍历算法 (BVH Traversal)</strong>
+BVH 的光线求交采用递归算法：如果光线没有击中当前节点的包围盒，则直接返回无交点；如果是叶子节点，则与内部的所有物体遍历求交并返回最近点；如果是中间节点，则分别递归检测它的左子树和右子树，最后返回两者中较近的交点。</p>
+
+<h4 id="五-辐射度量学基础-basic-radiometry">五、 辐射度量学基础 (Basic Radiometry)</h4>
+<p>前面学习的 Whitted-Style 光线追踪模型和 Blinn-Phong 着色模型都存在大量不符合物理直觉的设定（例如定义光照强度为没有单位的常数 10，以及对能量衰减的粗略估计）。为了得到极其逼真且物理正确的渲染结果，必须引入<strong>辐射度量学 (Radiometry)</strong>。</p>
+
+<p>辐射度量学提供了一套<strong>用于衡量光照的物理量和测量系统</strong>，它基于几何光学（假设光沿直线传播），能够精确定义光线、材质以及光在空间中的传播属性。</p>
+
+<p><strong>1. 辐射能量与辐射通量 (Radiant Energy &amp; Flux/Power)</strong></p>
+<ul>
+  <li><strong>Radiant Energy ($Q$) / 辐射能量</strong>：电磁辐射的能量，单位是焦耳 (Joule, $J$)。</li>
+  <li><strong>Radiant Flux 或 Power ($\Phi$) / 辐射通量或功率</strong>：定义为<strong>单位时间内的辐射能量</strong> ($\Phi = dQ/dt$)。单位是瓦特 (Watt, $W$) 或流明 (lumen, $lm$)。
+    <ul>
+      <li><strong>物理意义</strong>：它表示的是一个灯泡在单位时间发出的光的总量（即灯泡的“绝对亮度”），也可以被直观地理解为单位时间内穿过某一感光平面的<strong>光子数量</strong>。</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>2. 立体角 (Solid Angle)</strong>
+为了定义光在三维空间中向特定方向辐射的属性，我们需要从二维的角（Angle）扩展出三维的<strong>立体角 (Solid Angle, $\Omega$)</strong>。</p>
+<ul>
+  <li><strong>二维角的定义</strong>：圆上的弧长除以半径（$\theta = l/r$），整个圆对应 $2\pi$ 弧度。</li>
+  <li><strong>立体角的定义</strong>：三维空间中，在球面上截取的<strong>面积除以半径的平方</strong>（$\Omega = A/r^2$）。</li>
+  <li>整个球面的总立体角为 $4\pi r^2 / r^2 = \mathbf{4\pi}$ 球面度 (steradians, $sr$)。</li>
+  <li><strong>微分立体角 (Differential Solid Angle)</strong>：在球坐标系下，空间中任意单位方向的微分立体角可以通过 $d\omega = \sin\theta d\theta d\phi$ 算出。</li>
+</ul>
+
+<p><strong>3. 辐射强度 (Radiant Intensity)</strong></p>
+<ul>
+  <li><strong>定义 ($I$)</strong>：从一个点光源出发，在<strong>单位立体角</strong>上发射出的辐射通量（功率）。即 $I(\omega) = d\Phi / d\omega$。</li>
+  <li><strong>单位</strong>：流明每球面度 ($lm/sr$) 或 瓦特每球面度 ($W/sr$)，它在国际单位制中有一个专属的名称——<strong>坎德拉 (candela, $cd$)</strong>。</li>
+  <li><strong>物理计算示例</strong>：假设一个现代 LED 灯泡均匀地向四面八方发光（各向同性点光源，Isotropic Point Source），其总辐射通量为 815 流明。因为均匀发射，任意方向上的辐射强度等于总通量除以整个球面的立体角（$4\pi$）。因此该灯泡的辐射强度 $I = 815 / 4\pi \approx 65$ 坎德拉。</li>
+</ul>
+
+</body>
+</html>

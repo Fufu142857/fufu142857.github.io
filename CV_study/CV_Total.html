@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Concept Graph</title>
+    
+    <!-- Cytoscape and Layout Extensions -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            
+            /* Node Category Colors */
+            --color-core: #3b82f6;     /* Blue */
+            --color-physics: #f59e0b;  /* Amber */
+            --color-low: #10b981;      /* Emerald */
+            --color-mid: #8b5cf6;      /* Violet */
+            --color-high3d: #ef4444;   /* Red */
+            --color-highml: #ec4899;   /* Pink */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-main);
+        }
+
+        /* Layout */
+        #graph-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+        }
+
+        #cy {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #info-panel {
+            width: 450px;
+            height: 100%;
+            background-color: var(--panel-bg);
+            border-left: 1px solid var(--border-color);
+            box-shadow: -4px 0 15px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .panel-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: #fdfdfd;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .panel-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .panel-header .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: white;
+        }
+
+        .panel-content {
+            padding: 24px;
+            flex: 1;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Tree View CSS */
+        .tree-container {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        ul.tree {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        ul.tree ul {
+            list-style-type: none;
+            padding-left: 24px;
+            position: relative;
+            margin-top: 8px;
+        }
+
+        ul.tree ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 8px;
+            border-left: 2px solid var(--border-color);
+        }
+
+        ul.tree li {
+            position: relative;
+            margin-bottom: 12px;
+            padding-left: 16px;
+        }
+
+        ul.tree ul li::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: -16px;
+            width: 24px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        ul.tree li:last-child::before {
+            background: var(--panel-bg);
+            bottom: 0;
+            height: auto;
+        }
+
+        .tree-key {
+            font-weight: 600;
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 4px;
+            position: relative;
+        }
+        
+        .tree-key::before {
+            content: '•';
+            color: var(--color-core);
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: absolute;
+            left: -16px;
+            top: -2px;
+        }
+        
+        ul.tree ul .tree-key::before {
+            display: none; /* Hide dots for nested items, rely on connecting lines */
+        }
+
+        .tree-value {
+            color: #475569;
+            display: block;
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #f1f5f9;
+        }
+        
+        .tree-value code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #0f172a;
+            font-size: 0.9em;
+        }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(4px);
+            z-index: 5;
+            border: 1px solid var(--border-color);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 12px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="graph-container">
+        <div id="cy"></div>
+        
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: var(--color-core)"></div>Core Imaging</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--color-physics)"></div>Physics & Illumination</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--color-low)"></div>Low-Level Vision</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--color-mid)"></div>Mid-Level Vision</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--color-high3d)"></div>High-Level Vision (3D & Tracking)</div>
+            <div class="legend-item"><div class="legend-color" style="background: var(--color-highml)"></div>High-Level Vision (Semantics)</div>
+        </div>
+    </div>
+
+    <div id="info-panel">
+        <div id="default-state" class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+            </svg>
+            <h3>No Node Selected</h3>
+            <p>Click on any node in the graph to view its detailed knowledge tree.</p>
+        </div>
+
+        <div id="content-state" style="display: none; flex-direction: column; height: 100%;">
+            <div class="panel-header">
+                <div id="node-category" class="badge">Category</div>
+                <h2 id="node-title">Node Title</h2>
+            </div>
+            <div class="panel-content">
+                <div id="tree-root" class="tree-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Extraction & Structure Definition
+        const COLORS = {
+            core: '#3b82f6',     // Blue
+            physics: '#f59e0b',  // Amber
+            low: '#10b981',      // Emerald
+            mid: '#8b5cf6',      // Violet
+            high3d: '#ef4444',   // Red
+            highml: '#ec4899'    // Pink
+        };
+
+        const categories = {
+            'CM': { group: 'core', label: 'Core Imaging' },
+            'RC': { group: 'core', label: 'Core Imaging' },
+            'CC': { group: 'core', label: 'Core Imaging' },
+            'IF': { group: 'core', label: 'Core Imaging' }, 
+            
+            'PS': { group: 'physics', label: 'Physics & Illumination' },
+            'LC': { group: 'physics', label: 'Physics & Illumination' },
+            
+            'EPF': { group: 'low', label: 'Low-Level Vision' },
+            'IIS': { group: 'low', label: 'Low-Level Vision' },
+            'LFD': { group: 'low', label: 'Low-Level Vision' },
+            'OF': { group: 'low', label: 'Low-Level Vision' },
+            
+            'PIA': { group: 'mid', label: 'Mid-Level Vision' },
+            'TVG': { group: 'mid', label: 'Mid-Level Vision' },
+            'SM': { group: 'mid', label: 'Mid-Level Vision' },
+            'SFM': { group: 'mid', label: 'Mid-Level Vision' },
+            'IRC': { group: 'mid', label: 'Mid-Level Vision' },
+            
+            'SLAM': { group: 'high3d', label: 'High-Level Vision (3D)' },
+            
+            'IC': { group: 'highml', label: 'High-Level Vision (ML)' },
+            'DL': { group: 'highml', label: 'High-Level Vision (ML)' },
+            'OD': { group: 'highml', label: 'High-Level Vision (ML)' },
+            'ISS': { group: 'highml', label: 'High-Level Vision (ML)' }
+        };
+
+        // Complete textual data parsed from markdown
+        const nodeData = {
+            'CM': {
+                title: 'Camera Model and Optics',
+                details: {
+                    'Core Concept': 'Capturing light from a 3D scene to form a 2D image using pinholes or lenses.',
+                    'Problem Encountered': 'Balancing exposure time, depth of field, and field of view while avoiding blur and optical distortions.',
+                    'Proposed Method': {
+                        '_val': '<code>Thin Lens Model (TLM)</code>',
+                        'Method Description': 'Using lenses to gather light and adjusting focus (image distance) and aperture to control depth of field and exposure.',
+                        'Application Scenarios': 'Photography, autonomous driving, and security surveillance.',
+                        'Result / Output': 'A focused 2D image projected onto a sensor.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Lenses inherently introduce chromatic aberration and radial distortion that require subsequent mathematical correction.'
+                }
+            },
+            'RC': {
+                title: 'Radiometric Calibration',
+                details: {
+                    'Core Concept': 'Establishing the mathematical relationship between physical light intensity and digital pixel values.',
+                    'Problem Encountered': 'Camera sensors apply an unknown non-linear response function to compress dynamic range, distorting true irradiance.',
+                    'Proposed Method': {
+                        '_val': '<code>Camera Response Function (CRF)</code> Estimation',
+                        'Method Description': 'Capturing multiple images of a static scene at different known exposure times to mathematically solve for the non-linear response curve.',
+                        'Application Scenarios': '<code>High Dynamic Range (HDR)</code> imaging and photometric analysis.',
+                        'Result / Output': 'A linearized irradiance map recovering true physical light intensity.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Susceptible to ghosting artifacts if objects move during the multi-exposure capture process.'
+                }
+            },
+            'PS': {
+                title: 'Photometric Stereo',
+                details: {
+                    'Core Concept': 'Recovering dense 3D surface geometry from multiple 2D images under varying illumination.',
+                    'Problem Encountered': 'Inferring fine surface normals and albedo from pixel radiances while dealing with unknown material reflectance.',
+                    'Proposed Method': {
+                        '_val': '<code>Photometric Stereo (PS)</code>',
+                        'Method Description': 'Using a fixed camera and moving directional light sources to solve a linear system based on the <code>Lambertian Model (LM)</code>.',
+                        'Application Scenarios': 'Microscopic surface reconstruction and tactile sensor imaging.',
+                        'Result / Output': 'A dense surface normal field and albedo map.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Integrating normals into a height field often accumulates low-frequency distortion, and the basic model fails on specular highlights or attached shadows.'
+                }
+            },
+            'LC': {
+                title: 'Lighting Calibration',
+                details: {
+                    'Core Concept': 'Estimating the direction and intensity of light sources in a scene.',
+                    'Problem Encountered': 'Need to precisely know lighting conditions to perform photometric reconstruction or render virtual objects seamlessly.',
+                    'Proposed Method': {
+                        '_val': '<code>Mirror Sphere Calibration (MSC)</code>',
+                        'Method Description': 'Placing a perfectly reflective metallic sphere in the scene to capture specular highlights or a full environmental light map.',
+                        'Application Scenarios': 'Cinematic visual effects and augmented reality rendering.',
+                        'Result / Output': 'Precise directional light vectors or an HDR environment map.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Intrusive, as it requires placing a physical calibration object in the scene.'
+                }
+            },
+            'IF': {
+                title: 'Image Filtering and Edge Detection',
+                details: {
+                    'Core Concept': 'Modifying pixels based on local neighborhoods to smooth images or extract structural boundaries.',
+                    'Problem Encountered': 'Simple discrete derivatives amplify noise, drowning out true image edges.',
+                    'Proposed Method': {
+                        '_val': '<code>Derivative of Gaussian (DoG)</code>',
+                        'Method Description': 'Convolving the image with a Gaussian kernel to smooth noise before calculating the gradient to identify strong edges.',
+                        'Application Scenarios': 'Feature extraction and contour detection.',
+                        'Result / Output': 'Gradient amplitude maps highlighting image edges.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Isotropic smoothing blurs out sharp edges along with the noise.'
+                }
+            },
+            'EPF': {
+                title: 'Edge-Preserving Filtering',
+                details: {
+                    'Core Concept': 'Smoothing homogeneous image regions while keeping structural boundaries sharp.',
+                    'Problem Encountered': 'Traditional Gaussian blur blindly averages pixels across boundaries, destroying crisp edges.',
+                    'Proposed Method': {
+                        '_val': '<code>Bilateral Filter (BF)</code>',
+                        'Method Description': 'Computing local weighted averages using a combination of spatial distance and pixel intensity differences to prevent blending across edges.',
+                        'Application Scenarios': 'Detail enhancement, tone mapping, and stylization.',
+                        'Result / Output': 'Noise-reduced images with perfectly preserved sharp boundaries.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Highly computationally expensive, often necessitating faster linear-time approximations like the <code>Guided Filter (GF)</code>.'
+                }
+            },
+            'IIS': {
+                title: 'Interactive Image Segmentation',
+                details: {
+                    'Core Concept': 'Separating foreground objects from the background based on sparse user input.',
+                    'Problem Encountered': 'Translating rough user strokes into precise pixel-level object boundaries by balancing color similarity and edge gradients.',
+                    'Proposed Method': {
+                        '_val': '<code>Graph Cut (GC)</code>',
+                        'Method Description': 'Modeling the image as a <code>Markov Random Field (MRF)</code> and using max-flow algorithms to find a minimum cut that minimizes data and smoothness costs.',
+                        'Application Scenarios': 'Medical image segmentation and photo editing tools.',
+                        'Result / Output': 'A precise binary mask dividing the image into foreground and background.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Only natively supports binary classification; multi-class tasks require iterative approximations like <code>Alpha-Expansion (AE)</code>.'
+                }
+            },
+            'LFD': {
+                title: 'Local Feature Detection',
+                details: {
+                    'Core Concept': 'Locating distinctive points in an image that can be reliably identified under various transformations.',
+                    'Problem Encountered': 'Image points must remain invariant to rotation, scale, and illumination changes to allow robust matching.',
+                    'Proposed Method': {
+                        '_val': '<code>Scale-Invariant Feature Transform (SIFT)</code>',
+                        'Method Description': 'Finding spatial and scale extrema using a difference-of-Gaussians pyramid, and describing them using localized gradient orientation histograms aligned to a dominant direction.',
+                        'Application Scenarios': 'Panorama stitching, object recognition, and SLAM.',
+                        'Result / Output': 'Scale and rotation-invariant high-dimensional feature vectors.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Computationally heavy to extract and match, driving the development of faster binary alternatives like <code>Oriented FAST and Rotated BRIEF (ORB)</code>.'
+                }
+            },
+            'PIA': {
+                title: 'Planar Image Alignment',
+                details: {
+                    'Core Concept': 'Geometrically warping images to seamlessly align them based on a common plane or pure camera rotation.',
+                    'Problem Encountered': 'Feature matching invariably includes erroneous outliers that catastrophically skew least-squares model fitting.',
+                    'Proposed Method': {
+                        '_val': '<code>Random Sample Consensus (RANSAC)</code>',
+                        'Method Description': 'Repeatedly sampling a minimal subset of points to calculate a <code>Homography (H)</code> matrix, selecting the model that yields the maximum number of conforming inliers.',
+                        'Application Scenarios': 'Panorama stitching and document scanning.',
+                        'Result / Output': 'A robust 3x3 projective transformation matrix stripped of outlier influence.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Fails if the outlier ratio exceeds 50 percent or if the scene exhibits non-planar depth variations under camera translation.'
+                }
+            },
+            'CC': {
+                title: 'Camera Calibration',
+                details: {
+                    'Core Concept': 'Determining the internal optical characteristics and external 3D pose of a camera.',
+                    'Problem Encountered': 'Mapping known 3D world coordinates to 2D image pixels involves complex non-linear projective operations.',
+                    'Proposed Method': {
+                        '_val': '<code>Direct Linear Transformation (DLT)</code>',
+                        'Method Description': 'Formulating the projection as a linear homogeneous system using 3D-2D point correspondences and solving via singular value decomposition, followed by non-linear optimization of the reprojection error.',
+                        'Application Scenarios': 'Augmented reality and precision metrology.',
+                        'Result / Output': 'The intrinsic camera matrix and extrinsic rotation and translation parameters.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Requires a known 3D calibration target; minimizing algebraic error in DLT lacks physical meaning without subsequent non-linear refinement.'
+                }
+            },
+            'TVG': {
+                title: 'Two-View Geometry',
+                details: {
+                    'Core Concept': 'Constraining the spatial search for matching pixels between two images of the same 3D scene.',
+                    'Problem Encountered': 'Searching for feature matches across the entire 2D image plane is computationally exhaustive and prone to ambiguity.',
+                    'Proposed Method': {
+                        '_val': '<code>Epipolar Geometry (EG)</code>',
+                        'Method Description': 'Utilizing the <code>Fundamental Matrix (F)</code> or <code>Essential Matrix (E)</code> to map a point in one image to a 1D epipolar line in the other, fundamentally restricting the search space.',
+                        'Application Scenarios': 'Stereo vision and 3D depth triangulation.',
+                        'Result / Output': 'Relative camera poses and constrained 1D search lines for point matching.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Matrix estimation is highly sensitive to noise and can degenerate if the 3D points are coplanar.'
+                }
+            },
+            'SFM': {
+                title: 'Structure-from-Motion',
+                details: {
+                    'Core Concept': 'Simultaneously recovering 3D scene structure and camera motion from an image sequence.',
+                    'Problem Encountered': 'Accumulation of tracking drift and the need to optimize millions of interdependent non-linear parameters.',
+                    'Proposed Method': {
+                        '_val': '<code>Bundle Adjustment (BA)</code>',
+                        'Method Description': 'Using non-linear least squares algorithms like <code>Levenberg-Marquardt (LM)</code> to jointly optimize 3D point coordinates and camera poses by minimizing the overall reprojection error.',
+                        'Application Scenarios': 'Large-scale 3D mapping and drone photogrammetry.',
+                        'Result / Output': 'A globally consistent 3D point cloud and precise camera trajectories.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Extremely computationally demanding and prone to falling into local minima if the initialization is poor.'
+                }
+            },
+            'SLAM': {
+                title: 'Simultaneous Localization and Mapping',
+                details: {
+                    'Core Concept': 'Incrementally building a map of an unknown environment while keeping track of the agent\'s location within it.',
+                    'Problem Encountered': 'Maintaining strict real-time performance while preventing long-term trajectory drift.',
+                    'Proposed Method': {
+                        '_val': '<code>Keyframe-based Visual SLAM (vSLAM)</code>',
+                        'Method Description': 'Decoupling real-time camera tracking from intensive background mapping and using <code>Loop Closure (LC)</code> detection to trigger global <code>Pose Graph Optimization (PGO)</code>.',
+                        'Application Scenarios': 'Autonomous mobile robots, self-driving cars, and AR headsets.',
+                        'Result / Output': 'An incrementally updated environmental map and real-time 6-DOF camera pose estimates.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Vulnerable to tracking failure in environments with motion blur, dynamic objects, or lack of texture.'
+                }
+            },
+            'SM': {
+                title: 'Stereo Matching',
+                details: {
+                    'Core Concept': 'Calculating depth by finding dense pixel correspondences between two rectified stereo images.',
+                    'Problem Encountered': 'Local window matching struggles in textureless regions and blurs depth boundaries.',
+                    'Proposed Method': {
+                        '_val': '<code>Semi-Global Matching (SGM)</code>',
+                        'Method Description': 'Approximating a global smoothness constraint by aggregating matching costs independently along multiple 1D paths using dynamic programming.',
+                        'Application Scenarios': 'Autonomous driving obstacle detection and 3D scanning.',
+                        'Result / Output': 'A dense disparity map inversely proportional to scene depth.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Struggles with highly reflective surfaces and severe occlusions.'
+                }
+            },
+            'OF': {
+                title: 'Optical Flow',
+                details: {
+                    'Core Concept': 'Estimating the 2D motion vector field of pixels between consecutive video frames.',
+                    'Problem Encountered': 'Solving for two motion variables per pixel using only one brightness constancy equation leads to the under-determined aperture problem.',
+                    'Proposed Method': {
+                        '_val': '<code>Lucas-Kanade (LK)</code> Algorithm',
+                        'Method Description': 'Assuming a local spatial neighborhood shares the same motion vector to over-determine the linear system, solvable via least squares at corner features.',
+                        'Application Scenarios': 'Video interpolation, object tracking, and motion analysis.',
+                        'Result / Output': 'A sparse or dense 2D velocity vector field representing pixel motion.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Fails when motion is large (requiring coarse-to-fine pyramids) or when illumination changes violate the brightness constancy assumption.'
+                }
+            },
+            'IRC': {
+                title: 'Image Retrieval and Categorization',
+                details: {
+                    'Core Concept': 'Representing images as orderless histograms of quantized local features for fast comparison.',
+                    'Problem Encountered': 'Exhaustively matching thousands of high-dimensional local descriptors across huge image databases is computationally impossible.',
+                    'Proposed Method': {
+                        '_val': '<code>Bag of Words (BoW)</code> with <code>Term Frequency-Inverse Document Frequency (TF-IDF)</code>',
+                        'Method Description': 'Clustering local features into a visual vocabulary using <code>K-means Clustering (KMC)</code>, encoding images as word frequency histograms, and weighting distinctive visual words higher.',
+                        'Application Scenarios': 'Large-scale image search and SLAM relocalization.',
+                        'Result / Output': 'A compact, sparse vector representation enabling real-time database queries via an inverted index.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Completely discards spatial layout information, occasionally leading to contextually nonsensical image matches.'
+                }
+            },
+            'IC': {
+                title: 'Image Classification',
+                details: {
+                    'Core Concept': 'Assigning semantic category labels to whole images using data-driven machine learning.',
+                    'Problem Encountered': 'Bridging the semantic gap while overcoming severe variations in viewpoint, illumination, and object deformation.',
+                    'Proposed Method': {
+                        '_val': '<code>Stochastic Gradient Descent (SGD)</code> for <code>Parametric Linear Classifier (PLC)</code>',
+                        'Method Description': 'Defining a parameterized scoring function evaluated by <code>Softmax Loss (SL)</code>, and iteratively updating weight matrices using gradients computed from small mini-batches of training data.',
+                        'Application Scenarios': 'Automated photo tagging and content moderation.',
+                        'Result / Output': 'A probability distribution over possible object categories.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Linear models lack the capacity to untangle the highly complex, non-linear manifolds of raw image pixels.'
+                }
+            },
+            'DL': {
+                title: 'Deep Learning for Vision',
+                details: {
+                    'Core Concept': 'Automatically learning hierarchical feature representations directly from raw pixels using deep neural networks.',
+                    'Problem Encountered': 'Training extremely deep networks suffers from exploding parameter counts and vanishing gradients.',
+                    'Proposed Method': {
+                        '_val': '<code>Convolutional Neural Network (CNN)</code>',
+                        'Method Description': 'Stacking convolutional layers with local receptive fields and shared weights, applying non-linear <code>Rectified Linear Unit (ReLU)</code> activations, and training end-to-end via <code>Back Propagation (BP)</code>.',
+                        'Application Scenarios': 'Facial recognition, medical image diagnosis, and generalized feature extraction.',
+                        'Result / Output': 'Highly robust, hierarchical feature maps and accurate task predictions.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Requires massive amounts of labeled data and computational power, and models often behave as uninterpretable black boxes.'
+                }
+            },
+            'OD': {
+                title: 'Object Detection',
+                details: {
+                    'Core Concept': 'Localizing and classifying multiple objects of varying sizes within a single image.',
+                    'Problem Encountered': 'Exhaustive sliding window searches are computationally prohibitive for real-time applications.',
+                    'Proposed Method': {
+                        '_val': '<code>You Only Look Once (YOLO)</code>',
+                        'Method Description': 'Formulating detection as a single-stage regression problem on a spatial grid, utilizing predefined anchor boxes to directly predict bounding box coordinates and class probabilities simultaneously.',
+                        'Application Scenarios': 'Real-time video surveillance and autonomous vehicle perception.',
+                        'Result / Output': 'Bounding boxes accompanied by class labels and confidence scores.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Struggles with detecting extremely small objects or densely overlapping targets compared to two-stage methods.'
+                }
+            },
+            'ISS': {
+                title: 'Image Semantic Segmentation',
+                details: {
+                    'Core Concept': 'Assigning a semantic class label to every single pixel in an image.',
+                    'Problem Encountered': 'Maintaining high spatial resolution for pixel-level prediction while capturing large-context semantic features.',
+                    'Proposed Method': {
+                        '_val': '<code>Fully Convolutional Network (FCN)</code> with <code>Transpose Convolution (TC)</code>',
+                        'Method Description': 'Downsampling spatial dimensions to extract deep semantic features, followed by learnable transpose convolutions to upsample the feature maps back to the original image resolution for dense prediction.',
+                        'Application Scenarios': 'Medical tissue segmentation and autonomous driving drivable area detection.',
+                        'Result / Output': 'A dense, pixel-resolution segmentation mask.'
+                    },
+                    'Current Limitations / Unresolved Problems': 'Often produces coarse boundaries; requires massive amounts of pixel-perfect annotated training data.'
+                }
+            }
+        };
+
+        // Graph Definition
+        const elements = {
+            nodes: Object.keys(nodeData).map(id => ({
+                data: { 
+                    id: id, 
+                    label: nodeData[id].title,
+                    color: COLORS[categories[id].group] 
+                }
+            })),
+            edges: [
+                { data: { source: 'CM', target: 'IF', label: 'Produces 2D Image' } },
+                { data: { source: 'CM', target: 'RC', label: 'Linearizes Irradiance' } },
+                { data: { source: 'CM', target: 'CC', label: 'Provides Intrinsics' } },
+                
+                { data: { source: 'RC', target: 'PS', label: 'Irradiance Map' } },
+                { data: { source: 'LC', target: 'PS', label: 'Light Source Vectors' } },
+                
+                { data: { source: 'IF', target: 'EPF', label: 'Smoothes & Enhances' } },
+                { data: { source: 'IF', target: 'IIS', label: 'Superpixels/Gradients' } },
+                { data: { source: 'IF', target: 'LFD', label: 'Detects Gradients' } },
+                { data: { source: 'IF', target: 'OF', label: 'Brightness Constancy' } },
+                
+                { data: { source: 'LFD', target: 'PIA', label: 'Feature Correspondences' } },
+                { data: { source: 'LFD', target: 'CC', label: '2D Point Matches' } },
+                { data: { source: 'LFD', target: 'TVG', label: 'Feature Matching' } },
+                { data: { source: 'LFD', target: 'IRC', label: 'Visual Words' } },
+                
+                { data: { source: 'CC', target: 'TVG', label: 'Intrinsic/Extrinsic Matrix' } },
+                { data: { source: 'TVG', target: 'SM', label: 'Epipolar Constraints' } },
+                { data: { source: 'TVG', target: 'SFM', label: 'Triangulation & Pose' } },
+                
+                { data: { source: 'SFM', target: 'SLAM', label: 'Initial Map & Tracking' } },
+                { data: { source: 'OF', target: 'SLAM', label: 'Temporal Pixel Tracking' } },
+                { data: { source: 'IRC', target: 'SLAM', label: 'Loop Closure Detection' } },
+                
+                { data: { source: 'IC', target: 'DL', label: 'Pretrained Backbone' } },
+                { data: { source: 'DL', target: 'OD', label: 'Feature Extraction' } },
+                { data: { source: 'DL', target: 'ISS', label: 'Pixel-Level Features' } },
+                { data: { source: 'IIS', target: 'ISS', label: 'Conceptually Leads To', dashed: true } }
+            ]
+        };
+
+        // Initialize Cytoscape
+        document.addEventListener('DOMContentLoaded', () => {
+            const cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: elements,
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'shape': 'round-rectangle',
+                            'background-color': 'data(color)',
+                            'label': 'data(label)',
+                            'color': '#ffffff',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'font-size': '13px',
+                            'font-weight': '600',
+                            'width': '220px',
+                            'height': '50px',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '200px',
+                            'box-shadow': '0 4px 6px rgba(0,0,0,0.1)',
+                            'border-width': 2,
+                            'border-color': 'rgba(255,255,255,0.2)'
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 2.5,
+                            'line-color': '#cbd5e1',
+                            'target-arrow-color': '#cbd5e1',
+                            'target-arrow-shape': 'triangle',
+                            'curve-style': 'bezier',
+                            'label': 'data(label)',
+                            'font-size': '11px',
+                            'color': '#475569',
+                            'text-background-opacity': 1,
+                            'text-background-color': '#f8fafc',
+                            'text-background-padding': '4px',
+                            'text-background-shape': 'roundrectangle',
+                            'edge-text-rotation': 'autorotate',
+                            'arrow-scale': 1.5
+                        }
+                    },
+                    {
+                        selector: 'edge[dashed]',
+                        style: {
+                            'line-style': 'dashed',
+                            'line-dash-pattern': [6, 4]
+                        }
+                    },
+                    {
+                        selector: 'node:selected',
+                        style: {
+                            'border-width': 4,
+                            'border-color': '#1e293b',
+                            'shadow-blur': 15,
+                            'shadow-color': '#1e293b',
+                            'shadow-opacity': 0.3
+                        }
+                    }
+                ],
+                layout: {
+                    name: 'dagre',
+                    rankDir: 'TB',
+                    nodeSep: 60,
+                    edgeSep: 40,
+                    rankSep: 100,
+                    padding: 50
+                },
+                wheelSensitivity: 0.2
+            });
+
+            // Interaction mapping
+            cy.on('tap', 'node', function(evt){
+                const node = evt.target;
+                const id = node.id();
+                showNodeDetails(id);
+                
+                // Center and zoom slightly on clicked node
+                cy.animate({
+                    center: { eles: node },
+                    zoom: 1.2,
+                    duration: 400
+                });
+            });
+
+            cy.on('tap', function(evt){
+                if(evt.target === cy){
+                    hideNodeDetails();
+                }
+            });
+            
+            // Build the Tree HTML recursively
+            function buildTreeHTML(data) {
+                let html = '<ul class="tree">';
+                for (const [key, value] of Object.entries(data)) {
+                    if (key === '_val') continue; // Skip the inline value for parent nodes
+                    
+                    html += `<li>`;
+                    html += `<span class="tree-key">${key}</span>`;
+                    
+                    if (typeof value === 'object' && value !== null) {
+                        if (value._val) {
+                            html += `<span class="tree-value">${value._val}</span>`;
+                        }
+                        html += buildTreeHTML(value);
+                    } else {
+                        html += `<span class="tree-value">${value}</span>`;
+                    }
+                    html += `</li>`;
+                }
+                html += '</ul>';
+                return html;
+            }
+
+            function showNodeDetails(id) {
+                const data = nodeData[id];
+                const cat = categories[id];
+                
+                document.getElementById('default-state').style.display = 'none';
+                document.getElementById('content-state').style.display = 'flex';
+                
+                const titleEl = document.getElementById('node-title');
+                const catEl = document.getElementById('node-category');
+                const treeRoot = document.getElementById('tree-root');
+                
+                titleEl.textContent = data.title;
+                catEl.textContent = cat.label;
+                catEl.style.backgroundColor = COLORS[cat.group];
+                
+                // Generate and inject tree HTML
+                treeRoot.innerHTML = buildTreeHTML(data.details);
+            }
+
+            function hideNodeDetails() {
+                document.getElementById('default-state').style.display = 'flex';
+                document.getElementById('content-state').style.display = 'none';
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                window.location.href = './readme';
+            } else if (e.key === 'Escape' || e.key === '0') {
+                window.location.href = '../visual_computing';
+            }
+        });
+    </script>
+</body>
+</html>

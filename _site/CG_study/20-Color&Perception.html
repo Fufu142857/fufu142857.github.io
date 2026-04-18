@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color and Perception | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="color-and-perception">Color and Perception</h3>
+
+<h4 id="一-颜色的物理学本质-physical-basis-of-color">一、 颜色的物理学本质 (Physical Basis of Color)</h4>
+<p>在探讨颜色之前，我们必须明确一个计算机图形学中的核心反直觉结论：<strong>颜色 (Color) 完全是人类的一种感知现象，它并非光线在物理世界中普遍存在的绝对属性</strong>。</p>
+<ul>
+  <li><strong>可见光光谱 (Visible Spectrum)</strong>：光是一种电磁辐射，表现为不同频率（或波长）的振荡。人类肉眼所能观察到的电磁波波长范围大约在 400 nm（纳米）到 700 nm 之间，这部分被称为可见光。</li>
+  <li><strong>谱功率密度 (Spectral Power Distribution, SPD)</strong>：为了在物理上精确描述一束光，我们使用 SPD 来表示这束光在不同波长上的能量分布（强度）。
+    <ul>
+      <li>例如，蓝天的 SPD 在短波长（高频，偏蓝）部分能量较高，而特定的人造光源可能会在某些波长出现峰值。</li>
+      <li><strong>线性性质 (Linearity)</strong>：SPD 满足可加性。如果将两束光叠加在一起，混合后光线的 SPD 等于原本两束光的 SPD 在每个波长上直接相加。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="二-颜色的生物学基础-biological-basis-of-color">二、 颜色的生物学基础 (Biological Basis of Color)</h4>
+<p>既然不同波长的光本身并没有“颜色”标签，那么人类是如何“看到”颜色的呢？这取决于人类的视觉系统。</p>
+<ul>
+  <li><strong>眼球结构与视网膜 (Retina)</strong>：人眼的工作原理类似于一台照相机。光线穿过瞳孔（光圈）和晶状体（透镜）后，最终聚焦并投影在眼球后壁的视网膜上。</li>
+  <li><strong>感光细胞 (Photoreceptor Cells)</strong>：视网膜上分布着两种将光信号转换为神经信号的细胞：
+    <ol>
+      <li><strong>棒状细胞 (Rod cells)</strong>：数量极多（约 1.2 亿个），主要在暗光环境下工作。它们只能感知光线的明暗强度，<strong>不能感知颜色</strong>（因此在极暗的月光下我们看东西都是灰色的）。</li>
+      <li><strong>锥形细胞 (Cone cells)</strong>：数量较少（约 600-700 万个），在正常照明下工作，是<strong>提供颜色感知</strong>的核心细胞。</li>
+    </ol>
+  </li>
+  <li><strong>三色视觉理论 (Tristimulus Theory)</strong>：
+    <ul>
+      <li>锥形细胞可以进一步细分为三种类型：<strong>S-Cone</strong>（对短波长敏感）、<strong>M-Cone</strong>（对中波长敏感）和 <strong>L-Cone</strong>（对长波长敏感）。</li>
+      <li>当我们看到一束特定 SPD 的光时，每一种锥形细胞都会将光线的 SPD 与自己特有的<strong>响应曲线 (Response curve)</strong> 进行相乘并积分。</li>
+      <li><strong>核心结论</strong>：无论进入眼睛的光谱曲线多么复杂，经过人眼的生理“积分”后，它都会被压缩成仅仅三个数字（分别代表 S、M、L 细胞的响应强度），这三个数字被传送到大脑，我们就“感觉”到了特定的颜色。</li>
+    </ul>
+  </li>
+  <li><strong>个体差异</strong>：极其有趣的是，不同人类个体的视网膜上，S、M、L 三种锥形细胞的比例和空间分布有着天壤之别。这意味着每个人眼中的世界颜色可能都有着细微的差别。</li>
+</ul>
+
+<h4 id="三-同色异谱现象-metamerism">三、 同色异谱现象 (Metamerism)</h4>
+<ul>
+  <li><strong>什么是同色异谱？</strong> 既然人眼只能获取 S、M、L 三个维度的数值，这必然导致一种情况：<strong>两束具有完全不同物理光谱 (SPD) 的光，在经过人眼积分后，恰好得到了完全相同的 (S, M, L) 响应值</strong>。</li>
+  <li>在人类看来，这两种物理上不同的光表现出了完全相同的颜色，这种现象就叫做<strong>同色异谱 (Metamerism)</strong>。</li>
+  <li><strong>意义</strong>：这一现象对于显示器和颜色复制极其重要。正因为同色异谱的存在，计算机屏幕才不需要（也做不到）发射出和真实世界完全一致的全频段光谱；它只需要用红、绿、蓝（RGB）三种像素发光进行混合，去“欺骗”人眼的 S、M、L 细胞，就能让我们看到与真实世界一样的颜色。</li>
+</ul>
+
+<h4 id="四-颜色匹配与颜色空间-color-matching-and-color-spaces">四、 颜色匹配与颜色空间 (Color Matching and Color Spaces)</h4>
+<p>为了将颜色数字化和标准化，图形学依赖于特定的颜色空间。</p>
+
+<p><strong>1. 加色系统与颜色匹配 (Additive Color &amp; Color Matching)</strong></p>
+<ul>
+  <li>在计算机和显示器领域，我们通常使用<strong>加色系统 (Additive Color)</strong>：光线叠加得越多，颜色越亮。例如将最高强度的 RGB 混合在一起会得到白色。</li>
+  <li><strong>颜色匹配实验</strong>：如果给定一束特定波长的单色光，我们可以通过调节三原色光的强度来匹配它。但实验发现，有时候匹配某些单色光，必须在原色的配比中加入<strong>负数</strong>（即把某一种原色光加到目标测试光那边去中和颜色），这导致 CIE RGB 的颜色匹配函数曲线上出现了负值区域。</li>
+</ul>
+
+<p><strong>2. CIE XYZ 颜色空间 (CIE XYZ Color Space)</strong></p>
+<ul>
+  <li>为了避免处理负数，CIE 组织人为创造了一个纯数学的虚拟颜色空间：<strong>CIE XYZ</strong>。</li>
+  <li><strong>特点</strong>：
+    <ul>
+      <li>它的匹配函数经过特殊设计，完全是正数，涵盖了人类可见的所有颜色。</li>
+      <li>大写 <strong>$Y$ 轴被专门设计用来代表颜色的亮度 (Luminance)</strong>。</li>
+    </ul>
+  </li>
+  <li><strong>色度图与色域 (Chromaticity Diagram &amp; Gamut)</strong>：
+    <ul>
+      <li>通过将 XYZ 三个值进行归一化（使得 $x+y+z=1$），我们可以忽略亮度，只用二维坐标 $(x, y)$ 来展示颜色种类，这就是经典的<strong>色度 (Chromaticity)</strong> 图。</li>
+      <li>色度图的外围马蹄形边界代表纯粹的单色光光谱，内部则是混合色。正中心 (1/3, 1/3) 位置是白色。</li>
+      <li><strong>色域 (Gamut)</strong>：指某个特定设备或颜色空间（如 sRGB）所能显示的颜色范围。在色度图上，它通常表现为被包裹在马蹄形内部的一个较小的三角形。</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>3. 其他常见颜色空间</strong></p>
+<ul>
+  <li><strong>sRGB</strong>：互联网和显示器最广泛采用的标准颜色空间，其色域极其有限。</li>
+  <li><strong>HSV (Hue-Saturation-Value)</strong>：这是为了迎合艺术家和人类直觉而设计的颜色空间（常见于取色器 Color Picker）。
+    <ul>
+      <li><strong>Hue (色调)</strong>：颜色的种类（如红黄蓝）。</li>
+      <li><strong>Saturation (饱和度)</strong>：颜色的纯度。饱和度越低，颜色越接近白色。</li>
+      <li><strong>Value (亮度)</strong>：明暗程度。</li>
+    </ul>
+  </li>
+  <li><strong>CIELAB (L<em>a</em>b* 空间) 与互补色理论</strong>：
+    <ul>
+      <li>基于人类神经学的 <strong>互补色理论 (Opponent Color Theory)</strong> 设计。</li>
+      <li>$L$ 轴代表亮度；$a$ 轴代表“红-绿”互补对；$b$ 轴代表“黄-蓝”互补对。</li>
+      <li><strong>依据</strong>：人类大脑无法想象出“偏红的绿色”，因为红绿在神经编码中是完全对立的两极。此外，当你盯着一张互补色图片（如负片版五星红旗）一段时间后，利用<strong>视觉暂留 (Afterimages)</strong>，你的大脑会自动补偿并让你在白纸上看到正常颜色的红旗。</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>4. 减色系统 (Subtractive Color Space)</strong></p>
+<ul>
+  <li>与发光的显示器不同，在印刷和颜料混合中，使用的是<strong>减色系统 (Subtractive Color Space)</strong>：颜色混合得越多，吸收的光越多，结果就越黑。</li>
+  <li><strong>CMYK 空间</strong>：代表青色 (Cyan)、品红 (Magenta)、黄色 (Yellow) 和黑色 (Key)。</li>
+  <li><strong>为什么需要 K (黑色)？</strong> 理论上混合 CMY 三种油墨就能得到黑色，但在实际工业印刷中，专门加入黑墨水是为了<strong>节约成本</strong>。大量文本都需要用到黑色，直接使用便宜的黑墨水可以避免浪费昂贵的彩色油墨。</li>
+</ul>
+
+<h4 id="五-颜色的相对性-everything-is-relative">五、 颜色的相对性 (Everything is Relative)</h4>
+<p>人类对颜色的感知并不是孤立的，它高度依赖于颜色所处的<strong>周围环境与上下文</strong>。</p>
+<ul>
+  <li><strong>视觉错觉</strong>：例如在经典的 Adelson 棋盘阴影错觉中，处于阴影中的某一个浅色方块，与处于光照下的某一个深色方块，如果将它们周围的干扰像素全部遮挡住，你会震惊地发现，它们在屏幕上的<strong>实际像素颜色 (RGB 值) 是完全一模一样的</strong>。</li>
+  <li>这再次印证了本课的开篇主旨：颜色完完全全是人类大脑处理视觉信号后产生的主观感知现象。</li>
+</ul>
+
+</body>
+</html>

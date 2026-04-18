@@ -1,7 +1,6 @@
 # 谭平-Computer Visition
 
 > 此笔记根据谭平老师的计算机视觉课程而做。
->
 > 图片均来自谭平老师的PPT截图.
 
 
@@ -44,8 +43,8 @@ Object -> pinhole/lense -> film
        + 约束：只有满足方程的点才能成清晰的像。
      
        + **对焦：**Adjusting $d_i$ to choose the object in focus. 我们调整成像的位置去让像重新清晰起来。
-     
-  
+
+
   ***
   
   2. ##### **光圈与景深** (Aperture & Depth of Field)
@@ -93,6 +92,11 @@ Object -> pinhole/lense -> film
          | **Wide Angle (广角)** | **Small** (短焦) | **Large** (宽视角) | 视野广阔，物体较小，透视畸变明显[平行线相交, 近大远小] | 自动驾驶(需看清周围路况)、全景拼接、SLAM         |
          | **Telephoto (长焦)**  | **Large** (长焦) | **Small** (窄视角) | 视野狭窄，相当于望远镜，物体被放大[平行关系几乎不变]   | 远距离监控(车牌识别)、野生动物检测、细节纹理分析 |
   
+| Column1 | Column2 | Column3 | Column4 | Column5 |
+| --------------- | --------------- | --------------- | --------------- | --------------- |
+| Item1.1 | Item2.1 | Item3.1 | Item4.1 | Item5.1 |
+| Item1.2 | Item2.2 | Item3.2 | Item4.2 | Item5.2 |
+
   
   4. ##### 色散 Chromatic Aberration 
   
@@ -104,7 +108,7 @@ Object -> pinhole/lense -> film
   
      + 表现为直线变弯
   
-     + 这种畸变是**径向的 (Radial)**，即沿着半径方向对称。离图像中心越远，畸变越严重。
+     + 这种畸变是**径向的 (Radial)** ，即沿着半径方向对称。离图像中心越远，畸变越严重。
   
      + ##### 三种类型
   
@@ -115,7 +119,7 @@ Object -> pinhole/lense -> film
            <img src="/Users/a1-6/Library/Application Support/typora-user-images/image-20251225144831376.png" alt="image-20251225144831376" style="zoom:25%;" />
         
   + **Correction**
-     
+    
      在做几何视觉（如 3D 重建、SLAM）前，必须先进行 **Undistortion (去畸变)**。
   
   
@@ -161,3 +165,104 @@ difference？原理是什么
 ## 3 Color
 
 > 
+
+![image-20260305204137949](/Users/a1-6/Library/Application Support/typora-user-images/image-20260305204137949.png)
+
+给到颜色，能够通过函数计算出来
+
+颜色空间
+
++ Linear transform from XYZ to sRGB
+
++ #### YUV Color Space
+
+  > 帮助做视频和图像的压缩
+
+  + Y 亮度值
+
+  + U和V 整体描述了颜色
+
+    > 人眼对 U 和 V 不敏感，可以把这个压缩得很厉害。
+
++ 加法用RGB，减法（比如滤光片）CMY
+  + RGB 比 CMY 还原颜色更好
+  + CMY 光更多，性价比更高
+
+![image-20260305210135150](/Users/a1-6/Library/Application Support/typora-user-images/image-20260305210135150.png)
+Demosaicing
+
+人眼对绿光更敏感
+
+![image-20260305211242554](/Users/a1-6/Library/Application Support/typora-user-images/image-20260305211242554.png)
+
+多光谱图像应用
+
+> 普通 RGB 相机，引入其他光谱频段
+
++ 光对不同皮肤的反射不一样
+
+  不同波长的光对皮肤的穿透深度和吸收率完全不同。
+
++ 墨迹的反射率也不一样就能还原
+
+
+
+## 3 Radiometric Calibration & HDR
+
+> 光的强度 -> 像素值（数字表示）
+
++ #### Preliminary Terms
+
+  + Radiance
+
+    单位面积、单位时间、单位空间角 发出的能量
+
+  + Irradiance
+
+    单位面积、单位时间 接收到的能量
+
++ #### Radiometric Calibration 
+
+  1. ##### 核心前提： 相机的非线性响应
+
+  - **"Cameras have non-linear responses in terms of exposure"**：
+
+    现实中，相机的传感器接收到的光子数量（曝光量）与最终输出的图像像素值（0-255）之间，并不是简单的正比例（线性）关系。为了压缩动态范围或让照片色彩更符合人眼的视觉习惯，相机硬件或内部软件会对收集到的光信号施加一个非线性的数学变换。
+
+  ##### 2. 公式解析：图像的生成过程
+
+  PPT给出了相机成像的数学模型：
+
+  $$Z_{ij} = f(E_i * \Delta t_j)$$
+
+  - $E_i$：第 $i$ 个像素所接收到的真实**辐射照度（Irradiance）**，代表现实世界中该点的客观光强度。
+  - $\Delta t_j$：第 $j$ 次拍摄时的**快门时间（Shutter speed）**。
+  - $E_i * \Delta t_j$：这两者相乘即为**曝光量（Exposure）**，也就是传感器在快门开启期间收集到的总光能。
+  - $f$：**相机响应函数（Camera Response Function, CRF）**。这就是前面提到的那个未知的“非线性处理过程”。
+  - $Z_{ij}$：最终图像文件里存储的数字**像素值**（通常是 0 到 255 之间的整数）。
+
+  ##### 3. 辐射标定的目的
+
+  - **"Radiometric calibration amounts to recover the response function"**：
+
+    辐射标定的根本任务，就是通过算法**求解出这个未知的响应函数 $f$**。
+
++ #### HDR High Dynamic Range
+
+  To capture both **dark** and **bright** areas in an image.
+
++ #### Algorithm to find the response function
+
+  $$
+  \log Exposure = \log Irradiance + \log \Delta t
+  $$
+
+  ![image-20260306132617853](/Users/a1-6/Library/Application Support/typora-user-images/image-20260306132617853.png)
+
+  通过物理知识写出公式，经常要加 smoothness 约束
+
+
+
+## 4 Reflaction and lighting
+
+![image-20260309132039837](/Users/a1-6/Library/Application Support/typora-user-images/image-20260309132039837.png)

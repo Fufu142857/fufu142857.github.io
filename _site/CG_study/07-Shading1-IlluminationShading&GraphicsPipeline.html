@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shading 1 (illumination, Shading and Graphics Pipeline) | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="shading-1-illumination-shading-and-graphics-pipeline">Shading 1 (illumination, Shading and Graphics Pipeline)</h3>
+
+<h4 id="一-可见性与遮挡-visibility--occlusion">一、 可见性与遮挡 (Visibility / Occlusion)</h4>
+<p>在将多个三维三角形画到二维屏幕上时，我们需要处理它们之间的前后遮挡关系，确保近处的物体遮挡住远处的物体。</p>
+
+<p><strong>1. 画家算法 (Painter’s Algorithm)</strong></p>
+<ul>
+  <li><strong>核心思想</strong>：借鉴油画画家的作画方式，首先绘制远处的物体，然后逐渐将近处的物体画上去，近处的物体会覆盖掉（Overwrite）背景中已经画好的远处物体。</li>
+  <li><strong>局限性</strong>：画家算法要求对空间中所有三角形的深度进行排序，如果有 $n$ 个三角形，则需要 $O(n \log n)$ 的时间复杂度。更致命的是，空间中存在无法明确定义前后顺序的情况，例如三个三角形互相遮挡形成一个闭环，此时画家算法完全失效。</li>
+</ul>
+
+<p><strong>2. 深度缓冲 (Z-Buffer / Depth Buffer)</strong>
+为了完美解决遮挡问题，图形学中引入了深度缓冲（Z-Buffer）算法，这是目前所有图形处理器（GPU）都在硬件层面支持的黄金标准。</p>
+<ul>
+  <li><strong>核心理念</strong>：放弃对三角形进行整体排序，转而对<strong>每一个像素（Pixel）</strong>或者采样点记录其当前所能看到的最浅深度（最近距离）。</li>
+  <li><strong>双缓冲机制</strong>：在渲染图像时，系统会同步生成两个缓冲区：一个是用于最终显示的<strong>帧缓冲 (Frame Buffer)</strong>，用于存储颜色值；另一个就是<strong>深度缓冲 (Z-Buffer)</strong>，用于存储每个像素对应的深度值。</li>
+  <li><strong>深度值的约定</strong>：为了简化理解，我们通常假设摄像机位于原点且看向 $-Z$ 轴，并将点到相机的距离统一定义为一个正数的深度值 $z$；<strong>$z$ 值越小代表离相机越近，$z$ 值越大代表越远</strong>。</li>
+  <li><strong>算法流程</strong>：
+    <ol>
+      <li>初始化：将 Z-Buffer 中所有像素的深度值初始化为无限大（$\infty$）。</li>
+      <li>遍历光栅化：在光栅化每一个三角形时，计算该三角形在特定像素点 $(x,y)$ 的深度值 $z$。</li>
+      <li>深度测试 (Depth Test)：如果当前三角形的深度 $z$ 小于 Z-Buffer 中记录的该像素的深度（$z &lt; \text{zbuffer}[x,y]$），说明新三角形离我们更近，那么就更新 Frame Buffer 中该像素的颜色，同时将 Z-Buffer 中的深度值更新为这个更小的 $z$。</li>
+      <li>如果 $z$ 大于或等于 Z-Buffer 中的值，说明新三角形被挡住了，什么都不用做。</li>
+    </ol>
+  </li>
+  <li><strong>算法复杂度与特性</strong>：该算法本质上是在遍历并寻找最小值的过程，因此时间复杂度为 $O(n)$，而非排序算法的 $O(n \log n)$。更重要的是，<strong>只要没有深度完全重合的三角形，不论以什么顺序绘制三角形，Z-Buffer 最终生成的图像都是完全一样的</strong>，与顺序无关。</li>
+</ul>
+
+<h4 id="二-着色基础-shading-basics">二、 着色基础 (Shading Basics)</h4>
+<p>解决完可见性问题后，接下来要考虑的是如何计算表面像素的颜色，这就是着色（Shading）。</p>
+<ul>
+  <li><strong>定义</strong>：在计算机图形学中，着色 (Shading) 被定义为<strong>对不同物体应用不同材质 (Material) 的过程</strong>。</li>
+  <li><strong>着色的局部性 (Shading is Local)</strong>：当我们计算某一个着色点 (Shading point) 的光照时，只考虑该点本身的属性、光源位置以及观察角度，<strong>不考虑其他物体的遮挡作用</strong>。因此，<strong>着色不会自动生成阴影 (Shading $\neq$ Shadow)</strong>。</li>
+  <li><strong>着色模型的输入变量 (Inputs)</strong>：为了计算某个着色点的颜色，我们需要定义几个关键方向（通常都是长度为 1 的单位向量 Unit vectors）：
+    <ol>
+      <li><strong>观察方向 (Viewer direction, $v$)</strong>：从着色点指向相机的向量。</li>
+      <li><strong>表面法线 (Surface normal, $n$)</strong>：垂直于着色点所在局部平面的向量。</li>
+      <li><strong>光照方向 (Light direction, $l$)</strong>：从着色点指向光源的向量。</li>
+      <li><strong>表面属性 (Surface parameters)</strong>：如颜色、光泽度等。</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="三-blinn-phong-反射模型-blinn-phong-reflectance-model">三、 Blinn-Phong 反射模型 (Blinn-Phong Reflectance Model)</h4>
+<p>这是一个经典且简化的经验性着色模型，它将光照表现分为三部分：漫反射 (Diffuse reflection)、高光 (Specular highlights) 和环境光 (Ambient lighting)。本节课主要推导了漫反射。</p>
+
+<p><strong>漫反射 (Diffuse Reflection)</strong>
+漫反射用来模拟粗糙表面（如墙面、木头），光线打到这类表面上后，会被<strong>均匀地向四面八方反射</strong>。正因如此，<strong>无论你从哪个角度（观测方向 $v$）观察，该点的漫反射亮度都是一样的</strong>。
+漫反射的亮度计算依赖于以下两个物理规律：</p>
+<ol>
+  <li><strong>光照衰减 (Light Falloff)</strong>：根据能量守恒定律，点光源辐射出的能量均匀分布在球壳上，球壳面积随距离的平方而增大；如果距离光源为 1 处的能量强度为 $I$，那么传播到距离为 $r$ 处的着色点时，其光照强度衰减为 $I / r^2$。</li>
+  <li><strong>兰伯特余弦定律 (Lambert’s Cosine Law)</strong>：着色点单位面积能够接收到的能量，与<strong>表面法线 $n$ 和光照方向 $l$ 之间夹角的余弦值成正比</strong>。即接收到的能量与 $\cos\theta$（也就是向量点乘 $n \cdot l$）成正比。</li>
+</ol>
+
+<p><strong>漫反射计算公式 (Lambertian Shading Equation)</strong>：
+综合以上两点，可以得出漫反射的光照公式：
+\(L_d = k_d (I / r^2) \max(0, n \cdot l)\)</p>
+
+<ul>
+  <li>公式中的 $I / r^2$ 代表到达着色点的总光照能量。</li>
+  <li>公式中的 $\max(0, n \cdot l)$ 代表着色点实际吸收的能量比例；如果点乘为负数，说明光源从表面背侧照射过来，没有物理意义，因此将结果截断为 0。</li>
+  <li>公式中的 <strong>$k_d$ 是漫反射系数 (Diffuse coefficient)</strong>，它本质上定义了物体的<strong>颜色 (Color)</strong>。它代表该点吸收了多少光能，又反射出去了多少光能；如果 $k_d = 1$（或者 RGB 为全白），代表光线被全部反射，物体最亮；如果 $k_d = 0$，代表光线全被吸收，物体呈现黑色。</li>
+</ul>
+
+</body>
+</html>

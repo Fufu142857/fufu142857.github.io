@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geometry &amp; Camera Model | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="geometry--camera-model">Geometry &amp; Camera Model</h3>
+
+<h4 id="1-basic-projective-geometry">1 Basic Projective Geometry</h4>
+
+<p>在学习相机标定和三维重建之前，必须理解底层的 <strong>Projectiv Geometry</strong> 数学工具，它能将复杂的非线性问题转化为优雅的线性矩阵运算。</p>
+
+<ul>
+  <li><strong>Homogeneous Coordinates (齐次坐标)</strong>:
+    <ul>
+      <li>传统的 2D 欧氏坐标是 $[x, y]$，而在摄影几何中，我们引入 <strong>Homogeneous coordinate</strong>，在末尾加一个元素变成 3D 向量 $[x, y, 1]$。</li>
+      <li><strong>Define up to a scale (尺度等价)</strong>: 齐次坐标的一个核心特性是，乘以任意非零常数 $k$ 后，表示的仍然是同一个点（例如 $[x, y, 1]$ 和 $[kx, ky, k]$ 是同一个点）。</li>
+      <li>如果要将齐次坐标转换回传统的欧氏坐标，只需将前两个元素除以最后一个元素即可。</li>
+    </ul>
+  </li>
+  <li><strong>点与线的 Duality (对偶性)</strong>
+    <ul>
+      <li>在二维平面上，一条直线 $ax + by + c = 0$ 可以由系数向量 $L = [a, b, c]^T$ 表示，这同样是一个 3 维向量且 Define up to a scale。</li>
+      <li>因为点 $X$ 和线 $L$ 在代数上都是 3x1 的向量，摄影几何中存在<strong>对偶性 (Duality)</strong> ：如果你有一个关于点的几何定理，只需将定理中的“点”替换为“线”，该定理依然成立。</li>
+      <li>点 $X$ 在线 $L$ 上，等价于代数方程 $X^T L = 0$。</li>
+    </ul>
+  </li>
+  <li><strong>交点与连线 (Intersections and Lines)</strong>
+    <ul>
+      <li><strong>求交点</strong>: 给定两条线 $L$ 和 $L’$，它们的交点 $X$ 就是两者的<strong>叉乘 (Cross product)</strong> ，即 $X = L \times L’$。</li>
+      <li><strong>求连线</strong>: 给定两个点 $X$ 和 $X’$，穿过它们的直线 $L$ 也是两者的叉乘，即 $L = X \times X’$。</li>
+    </ul>
+  </li>
+  <li><strong>Point at Infinity (无穷远点) &amp; Line at Infinity (无穷远线)</strong>
+    <ul>
+      <li>如果两根直线互相平行，它们的叉乘结果的最后一个元素会是 0（例如 $[X_1, X_2, 0]^T$）。将其转回普通坐标时会除以 0，得到无穷大。这种点被称为 <strong>Point at infinity (无穷远点)</strong> 。</li>
+      <li>空间中有无数个不同方向的平行线，因此有无数个无穷远点。这些所有的无穷远点整齐地排列在同一条直线上，即 <strong>Line at infinity (无穷远线)</strong> 。该直线的方程为 $^T$。</li>
+      <li><strong>Affine transformation (仿射变换)</strong> 之所以能保持平行关系，就是因为该变换能够保持无穷远线作为一个整体不动。直线上的点的相对位置会发生变化。</li>
+      <li>恢复平行关系(affine structure)：挑两条平行线，求出交点=无穷远点，通过无穷远点的叉乘得到无穷远线，然后把其还原回/映射到无穷远，就可以把图片恢复了。</li>
+    </ul>
+  </li>
+  <li><strong>Conic (二次曲线)</strong>:
+    <ul>
+      <li>在摄影几何中，二次曲线（如椭圆）可以用一个 3x3 的对称矩阵 $C$ 来表示。点 $X$ 在曲线上满足 $X^T C X = 0$。</li>
+      <li>因为矩阵 $C$ 有 6 个元素且 Define up to a scale，所以它有 5 个 <strong>Degrees of freedom (自由度)</strong> 。</li>
+      <li>这意味着只要给定平面上的 5 个点，就能列出方程组，通过 <strong>SVD (奇异值分解)</strong> 提取最后的一列，从而求解出这条二次曲线。</li>
+    </ul>
+  </li>
+  <li><strong>3D Projective Geometry (三维摄影几何)</strong>:
+    <ul>
+      <li>扩展到三维空间后，坐标增加一维变为 4x1 的向量，对应的变换矩阵为 4x4 矩阵（15个自由度）</li>
+      <li>二维的二次曲线扩展为三维的 <strong>Quadric (二次曲面)</strong> ，用 4x4 对称矩阵表示。</li>
+      <li>所有的三维无穷远点汇聚在一起构成了一个 <strong>Plane at infinity (无穷远平面)</strong> $(0,0,0,1)$，方程为 $^T$。若两个普通平面相交的交线落在了无穷远平面上，则这两个平面互相平行。三维空间中的对偶性存在于“点”与“平面”之间。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="2-camera-model">2 Camera Model</h4>
+
+<ul>
+  <li><strong>Pinhole Model (针孔模型) 与图像平面</strong>:
+    <ul>
+      <li>为了在数学分析上避免图像倒立的不便，通常将 Image plane (图像平面) 假设在小孔（Center of projection, 投影中心）的<strong>前方</strong>。相机沿着负 Z 轴方向观察。</li>
+    </ul>
+  </li>
+  <li><strong>Linearizing the Model (线性化投影模型)</strong>:
+    <ul>
+      <li>普通的投影运算涉及除以深度 $Z$ ($x’ = -d \frac{X}{Z}$)，这是一个棘手的非线性 (Non-linear) 操作。</li>
+      <li>当我们引入 <strong>Homogeneous coordinate</strong> 后，可以将相机投影完美地表示为一个矩阵乘法的<strong>线性模型 (Linear model)</strong> ：用一个 3x4 的矩阵乘以 4x1 的三维点坐标，即可得到 3x1 的图像点齐次坐标。</li>
+    </ul>
+  </li>
+  <li><strong>Camera Parameters (相机的参数)</strong>:
+    <ul>
+      <li>相机在世界中的完整投影矩阵 $P$ 由 <strong>Extrinsic parameters (外参)</strong> 和 <strong>Intrinsic parameters (内参)</strong> 组合而成。</li>
+      <li><strong>Extrinsic Parameters (外参)</strong>: 描述相机在 World coordinate system (世界坐标系) 中的三维位置 (Translation, 通常记为 $C$) 和朝向 (Rotation, 通常记为 $R$)。相机的运动会导致外参改变。</li>
+      <li><strong>Intrinsic Parameters (内参矩阵 $K$)</strong>: 描述相机内部属性的 3x3 矩阵，通常包含：
+        <ul>
+          <li><strong>Focal length (焦距, $f$)</strong>: 决定相机的视角大小 (Field of View)。</li>
+          <li><strong>Principal point (主点, $c_x, c_y$)</strong>: 图像平面上的中心点偏移量，通常接近图像正中心。</li>
+          <li><strong>Aspect ratio ($\alpha$)</strong> 与 <strong>Skew ($s$)</strong>: 描述像素是否为正方形以及传感器轴是否垂直。在现代数码相机中，$\alpha$ 基本等于 1，$s$ 基本等于 0。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>Orthographic Projection (正交/平行投影)</strong>:
+    <ul>
+      <li>一种特殊的投影模型。当相机的投影中心退到无穷远时，所有的投影光线互相平行，这会直接丢弃 Z 坐标信息。</li>
+    </ul>
+  </li>
+  <li><strong>Lens Distortion (镜头畸变)</strong>:
+    <ul>
+      <li>广角镜头通常会产生 Pin cushion 或 Barrel 畸变。此时，真实的投影点会偏离理想直线，破坏了共线性，导致我们推导的 3x4 线性投影矩阵失效。</li>
+      <li>必须引入额外的非线性畸变模型（如 $k_1, k_2$ 径向畸变系数），对坐标到投影中心的距离半径 $r$ 进行多项式修正后，才能<strong>继续</strong>使用相机的内参模型。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="3-decomposing-the-projection-matrix">3 Decomposing the Projection Matrix</h4>
+<p>如果仅仅给定一个 3x4 的相机投影矩阵 $P$，我们能够反向挖掘出其中蕴含的丰富几何物理意义。</p>
+
+<ul>
+  <li><strong>Camera Center (寻找相机中心 $C$)</strong>
+    <ul>
+      <li>相机中心是一个三维点，它满足 $PC = 0$（即它是矩阵 $P$ 的 Null space / 零空间）。几何意义是：中心点以及与其相连的视线上的点，投影后都落在图上的同一个点上。
+\(C = \left(d_up 0_down \right), Md = 0\)</li>
+    </ul>
+  </li>
+  <li><strong>矩阵各列的意义 (Columns of P)</strong>
+    <ul>
+      <li>矩阵的第 1、2、3 列，分别代表了沿着世界坐标系 X、Y、Z 轴方向的 Point at infinity (无穷远点) 投影在图像平面上的坐标。</li>
+      <li>矩阵的第 4 列代表世界坐标系原点在图上的投影。</li>
+    </ul>
+  </li>
+  <li><strong>矩阵各行的意义 (Rows of P)</strong>
+    <ul>
+      <li>特别是第 3 行，它定义了一个四维向量（即三维空间中的一个平面）。这个平面就是 <strong>Principal plane (主平面)</strong> ，它平行于图像平面并且穿过相机中心。</li>
+      <li>第 3 行的前三个元素直接构成了相机在世界坐标系下的 <strong>Orientation / Principal direction (主轴朝向)</strong></li>
+    </ul>
+  </li>
+  <li><strong>深度与分解 (Depth &amp; Decomposition)</strong>
+    <ul>
+      <li><strong>Depth (深度计算)</strong>: 任意空间点到相机主平面的距离，可以通过该点坐标向相机的朝向向量 (矩阵第 3 行的前三元素做归一化后) 投影点乘来快速计算。</li>
+      <li><strong>RQ Decomposition (RQ 分解)</strong>: 我们可以提取 $P$ 矩阵左侧的 3x3 子矩阵，通过 RQ 分解，将其精确拆分为一个上三角矩阵（即内参矩阵 $K$）和一个正交矩阵（即旋转外参 $R$）。</li>
+    </ul>
+  </li>
+</ul>
+
+</body>
+</html>

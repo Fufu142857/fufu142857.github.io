@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ray Tracing 4 (Monte Carlo Path Tracing) | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="ray-tracing-4-monte-carlo-path-tracing">Ray Tracing 4 (Monte Carlo Path Tracing)</h3>
+
+<h4 id="一-whitted-style-光线追踪的局限性-motivation">一、 Whitted-Style 光线追踪的局限性 (Motivation)</h4>
+<p>在之前的课程中，我们学习了 Whitted-Style Ray Tracing，但它存在一些并不符合物理直觉的简化，主要体现在以下两点：</p>
+<ol>
+  <li><strong>无法正确处理 Glossy（光泽）材质</strong>：Whitted-Style 假设光线打到镜面或玻璃材质时，只会沿着绝对的镜面反射或折射方向传播。然而，对于带有一定粗糙度的 Glossy 材质（如拉丝金属），光线不仅会在镜面方向反射，还会散布在其周围形成一个波瓣，这需要追踪多条方向的光线，Whitted-Style 无法做到。</li>
+  <li><strong>忽略了漫反射表面之间的间接光照 (Indirect Illumination)</strong>：Whitted-Style 假设光线打到 Diffuse（漫反射）物体就立刻停止追踪并计算着色。但在真实物理世界中，漫反射表面也会向四面八方反射光线。如果不计算漫反射的多次弹射，就会丢失 <strong>Color Bleeding（颜色出血）</strong> 效果（例如康奈尔盒子 Cornell Box 中红墙把原本黑暗的面照红的现象），且天花板等无法被光源直接照到的地方将变成死黑一片。</li>
+</ol>
+
+<p>因此，我们需要寻找一种能够正确解出<strong>渲染方程 (Rendering Equation)</strong> 的方法，以实现真正的<strong>全局光照 (Global Illumination)</strong>。</p>
+
+<h4 id="二-蒙特卡洛积分-monte-carlo-integration">二、 蒙特卡洛积分 (Monte Carlo Integration)</h4>
+<p>为了求解包含整个半球面方向的渲染方程，我们需要计算复杂的定积分。由于它很难求出解析解，我们引入了数值方法：蒙特卡洛积分。</p>
+<ul>
+  <li><strong>核心思想</strong>：通过对被积函数的值进行<strong>随机采样 (Random sampling)</strong>，并将这些样本的值求平均，以此来近似计算整个定积分的面积。</li>
+  <li><strong>基本公式</strong>：假设我们要求解函数 $f(x)$ 在区间 $[a,b]$ 的定积分。如果我们在区间内依据某一<strong>概率密度函数 (PDF, $p(x)$)</strong> 随机采样出样本 $X_i$，那么该积分的蒙特卡洛估计值 $F_N$ 为：
+\(F_N = \frac{1}{N} \sum_{i=1}^N \frac{f(X_i)}{p(X_i)}\)</li>
+  <li><strong>性质</strong>：
+    <ul>
+      <li><strong>样本数 $N$ 越大，结果越准确</strong>，产生的方差（在画面上表现为噪点/Noise）越小。</li>
+      <li><strong>在哪积分，就在哪采样 (Sample on $x$, integrate on $x$)</strong>：如果被积变量是 $x$，我们采取的随机样本也必须是在 $x$ 域上的。</li>
+      <li>对于 $[a,b]$ 区间的<strong>均匀采样 (Uniform sample)</strong>，其 PDF 为恒定常数 $p(x) = \frac{1}{b-a}$。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="三-路径追踪的演进-path-tracing">三、 路径追踪的演进 (Path Tracing)</h4>
+
+<p>基于蒙特卡洛积分，我们现在可以来解渲染方程了。设被积函数 $f(\omega_i) = L_i(\omega_i) f_r(\omega_i, \omega_o) \cos\theta$，在半球面上均匀采样方向 $\omega_i$，其 PDF 为 $\frac{1}{2\pi}$。</p>
+
+<h5 id="1-光线爆炸问题与-n1-ray-explosion">1. 光线爆炸问题与 N=1 (Ray Explosion)</h5>
+<ul>
+  <li>如果对于任何一个着色点，我们都随机向四面八方打出 $N$ 条（比如 100 条）光线，当这些光线打到其他物体上发生第二次、第三次弹射时，光线的总数会以指数级增长 ($N^{\text{bounces}}$)，导致计算量瞬间爆炸。</li>
+  <li><strong>解决方案</strong>：为了防止指数爆炸，我们规定<strong>每次在着色点弹射时，只随机采样 1 条光线 (即 $N=1$)</strong>。</li>
+  <li><strong>$N=1$ 的蒙特卡洛积分，就叫做路径追踪 (Path Tracing)</strong>。因为它不再是一棵树，而是形成了一条从视点到光源的连通路径。</li>
+  <li><strong>降噪机制 (Ray Generation)</strong>：虽然 $N=1$ 会导致单条路径的着色结果充满噪点，但在生成图像时，我们可以让像素发射出大量不同的路径（例如每像素 1000 条路径，即 Samples Per Pixel, SPP），最后<strong>对这一个像素内的所有路径结果求平均</strong>，以此获得干净平滑的图像。</li>
+</ul>
+
+<h5 id="2-无限递归问题与俄罗斯轮盘赌-russian-roulette-rr">2. 无限递归问题与俄罗斯轮盘赌 (Russian Roulette, RR)</h5>
+<ul>
+  <li>真实世界中光线会不断弹射（无限次）。在代码中，这会导致递归算法永远无法停止；但如果我们人为限定只弹射一定次数（如 3 次），又会切断光线的能量传递，导致整体画面偏暗。</li>
+  <li><strong>解决方案：俄罗斯轮盘赌 (Russian Roulette)</strong>。我们不限制具体的弹射次数，而是设置一个<strong>存活概率 $P$</strong> ($0 &lt; P &lt; 1$)。
+    <ul>
+      <li>每次准备弹射前，生成一个 $$ 的随机数。</li>
+      <li>如果随机数 $&lt; P$，光线存活，<strong>继续追踪</strong>，并把最终返回的着色结果<strong>除以 $P$</strong>（即 $L_o / P$）。</li>
+      <li>如果随机数 $&gt; P$，光线死亡，<strong>停止追踪</strong>，返回结果为 0。</li>
+    </ul>
+  </li>
+  <li><strong>数学正确性</strong>：这套机制巧妙地保证了期望值不变：$E = P \times (L_o / P) + (1-P) \times 0 = L_o$。它既让光线最终一定能停下来，又保证了能量总和在物理上的绝对准确（无偏估计/Unbiased）。</li>
+</ul>
+
+<h4 id="四-光源采样与效率优化-sampling-the-light">四、 光源采样与效率优化 (Sampling the Light)</h4>
+<p>基础的路径追踪算法在处理<strong>较小的面光源</strong>时效率极低。因为我们是在半球面上均匀盲目地发射光线，只有极少数碰巧“中奖”打到小光源的光线才有颜色贡献，大量打空的光线被白白浪费，导致画面极其多噪点。</p>
+
+<p>为了完全不浪费光线，我们应当<strong>直接对光源所在的面积进行采样 (Sampling the Light)</strong>。</p>
+<ul>
+  <li><strong>变换积分域</strong>：蒙特卡洛积分要求“在哪采样就在哪积分”。我们现在要在光源表面积 ($dA$) 上采样，就必须将渲染方程从“对立体角 $d\omega$ 积分”改写为“对表面积 $dA$ 积分”。</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td><strong>立体角与面积的关系</strong>：$d\omega = \frac{dA \cos\theta’}{</td>
+          <td> </td>
+          <td>x’ - x</td>
+          <td> </td>
+          <td>^2}$。其中 $x’$ 是光源上的采样点，$x$ 是着色点，$\theta’$ 是光源法线与光线连线的夹角，分母是两点距离的平方。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li><strong>改写渲染方程</strong>：将上述等式代入，并在光源面 $A$ 上做积分。由于在光源上均匀采样，其 PDF 为 $\frac{1}{A}$。</li>
+</ul>
+
+<h4 id="五-最终版的路径追踪算法逻辑">五、 最终版的路径追踪算法逻辑</h4>
+<p>经过优化后，着色点接收到的光被严谨地分成了两部分计算求和：</p>
+
+<ol>
+  <li><strong>来自光源的直接光照 (Direct Illumination)</strong>
+    <ul>
+      <li><strong>操作</strong>：直接在光源的面积 $A$ 上均匀采样取一点。</li>
+      <li><strong>阴影测试</strong>：从着色点向该光源采样点打一条连线 (Shadow Ray)。如果中间没有被其他物体遮挡，则计算该光源直接贡献的光照。</li>
+      <li><strong>注意</strong>：这一步是直接计算出的确定项，<strong>不需要</strong>俄罗斯轮盘赌介入。</li>
+    </ul>
+  </li>
+  <li><strong>来自其他物体的间接光照 (Indirect Illumination)</strong>
+    <ul>
+      <li><strong>操作</strong>：此时进行<strong>俄罗斯轮盘赌</strong>测试。如果存活（概率 $P_{RR}$），则在半球面均匀采样一个方向 $\omega_i$ 射出光线。</li>
+      <li>如果该光线击中了一个<strong>非发光</strong>的物体，则递归调用着色函数，计算间接光贡献，最终结果除以半球面 PDF 以及 $P_{RR}$。</li>
+    </ul>
+  </li>
+</ol>
+
+<h4 id="六-总结与延伸话题-side-notes">六、 总结与延伸话题 (Side Notes)</h4>
+<ul>
+  <li><strong>照片级真实感 (Photo-realistic)</strong>：Path Tracing 由于几乎 100% 遵从了物理规律，它能渲染出如同真实照片般无可挑剔的画面品质，这也是现代图形学的核心基石。</li>
+  <li><strong>现代光线追踪的概念 (Modern Ray Tracing)</strong>：如今学术界和工业界所说的 Ray Tracing 已经是一个巨大的集合，包含了求解全局光照的各种高级方法：单向/双向路径追踪 (BDPT)、光子映射 (Photon Mapping)、Metropolis Light Transport (MLT)、VCM 等等。</li>
+  <li><strong>未深入的进阶领域</strong>：课程出于入门定位，并未涵盖某些影响效率的重要分支技术，如：如何根据函数形状挑选最佳 PDF（<strong>重要性采样 / Importance Sampling</strong>）、用于避免样本扎堆或过疏的高质量随机数（<strong>低差异序列 / Low Discrepancy Sequences</strong>）、如何巧妙结合光源采样与半球采样（<strong>多重重要性采样 / Multiple Importance Sampling, MIS</strong>），以及像素重建滤波与 Gamma 校正等。正如讲师所言，光线追踪领域博大精深，”Fear the science”。</li>
+</ul>
+
+</body>
+</html>

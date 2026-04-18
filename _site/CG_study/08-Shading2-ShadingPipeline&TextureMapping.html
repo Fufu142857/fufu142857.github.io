@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shading 2 (Shading, Pipeline and Texture Mapping) | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="shading-2-shading-pipeline-and-texture-mapping">Shading 2 (Shading, Pipeline and Texture Mapping)</h3>
+
+<h4 id="一-blinn-phong-反射模型续">一、 Blinn-Phong 反射模型（续）</h4>
+<p>在上一讲推导了漫反射（Diffuse）之后，本节课完成了 Blinn-Phong 着色模型中另外两项的推导：高光（Specular）与环境光（Ambient）。</p>
+
+<p><strong>1. 高光项 (Specular Term)</strong>
+高光通常出现在比较光滑的物体（如金属、塑料）表面。这类表面的特性是，反射光线会高度集中在镜面反射方向（Mirror reflection direction, $R$）附近。</p>
+<ul>
+  <li><strong>半程向量 (Half-vector, $h$) 假设</strong>：Blinn-Phong 模型做了一个极其聪明的简化计算假设。当我们的观察方向 $v$ 与镜面反射方向 $R$ 越接近时，这就等价于<strong>半程向量 $h$ 与表面法线 $n$ 越接近</strong>。
+    <ul>
+      <li>
+        <table>
+          <tbody>
+            <tr>
+              <td>半程向量是光照方向 $l$ 与观察方向 $v$ 的角平分线方向。其求法非常简单：将两向量相加后进行归一化即可，即 $h = \frac{v + l}{</td>
+              <td> </td>
+              <td>v + l</td>
+              <td> </td>
+              <td>}$。</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+  </li>
+  <li><strong>计算公式</strong>：为了衡量 $n$ 和 $h$ 的接近程度，我们依然采用向量的点乘。高光项公式为：$L_s = k_s (I/r^2) \max(0, n \cdot h)^p$。
+    <ul>
+      <li>$k_s$ 为镜面反射系数（通常被认为是白色的常量）。</li>
+      <li>公式中忽略了物体吸收能量的衰减项（即没有乘 $n \cdot l$），这是为了保证高光的亮度和视觉效果而做出的经验性简化。</li>
+    </ul>
+  </li>
+  <li><strong>指数 $p$ (Cosine Power) 的作用</strong>：仅仅通过向量的点乘得到的余弦值容忍度太高（例如 45 度角的余弦值依然很大，这会导致高光面积大得不真实）。通过给点乘结果加上一个指数 $p$（通常取 100 到 200 甚至更大），可以急剧压缩高光可见的范围，使其成为一个非常集中、锐利的亮点。</li>
+</ul>
+
+<p><strong>2. 环境光项 (Ambient Term)</strong>
+物体背面由于没有光源直接照射，理论上应该是全黑的，但在现实中它们会接收到场景中经过多次弹射的环境光照亮。</p>
+<ul>
+  <li><strong>大胆的假设</strong>：直接计算环境光极其复杂（属于全局光照 Global Illumination 的范畴），因此这里采用了一个大胆的近似假设——<strong>认为空间中任意一点接收到的环境光强度都是一个恒定的常数 $I_a$</strong>。</li>
+  <li><strong>计算公式</strong>：$L_a = k_a I_a$。环境光不依赖于光源位置 $l$，也不依赖于观察方向 $v$ 和法线 $n$。它的唯一作用就是整体提升场景的亮度，确保“没有地方是死黑的”。</li>
+</ul>
+
+<p><strong>综合公式</strong>：将漫反射、高光和环境光三项相加，我们就得到了完整的 <strong>Blinn-Phong 反射模型</strong>：$L = L_a + L_d + L_s$。</p>
+
+<h4 id="二-着色频率-shading-frequencies">二、 着色频率 (Shading Frequencies)</h4>
+<p>着色频率探讨的是：“我们应该把着色模型应用在什么粒度（点、面、还是像素）上？”。同一个几何模型，采用不同的着色频率会呈现出完全不同的平滑效果。</p>
+
+<ol>
+  <li><strong>Flat Shading (逐面着色)</strong>
+    <ul>
+      <li>将物体表面的每一个三角形面作为一个平面，利用三角形的两条边做叉乘求出该平面的单一法线。</li>
+      <li>整个三角形内部只做一次着色计算，导致整个面呈现单一颜色，在模型不够精细时会有明显的棱角感。</li>
+    </ul>
+  </li>
+  <li><strong>Gouraud Shading (逐顶点着色)</strong>
+    <ul>
+      <li>在三角形的每个<strong>顶点 (Vertex)</strong> 上计算一次着色，得到每个顶点的颜色。</li>
+      <li>然后在三角形内部，利用插值（Interpolation，通过重心坐标）计算出平滑过渡的颜色。</li>
+    </ul>
+  </li>
+  <li><strong>Phong Shading (逐像素着色)</strong>
+    <ul>
+      <li>已知三个顶点的法线后，通过插值算法计算出三角形内部<strong>每一个像素 (Pixel / Fragment)</strong> 各自的法线向量。</li>
+      <li>对每一个像素应用 Blinn-Phong 着色公式。这是这三种方法中效果最好、最平滑的。<em>(注意：这里的 Phong Shading 指的是着色频率，与前文的着色模型不是同一个概念)</em>。</li>
+    </ul>
+  </li>
+</ol>
+
+<p><strong>关于逐顶点的法线计算</strong>：在 Gouraud 或 Phong Shading 中，如何知道一个顶点的法线？一种常见的方法是，<strong>将共享该顶点的所有相邻三角形的平面法线求平均</strong>（简单平均或根据三角形面积进行加权平均），以此作为该顶点的法线。</p>
+
+<h4 id="三-实时渲染管线-real-time-graphics-pipeline">三、 实时渲染管线 (Real-time Graphics Pipeline)</h4>
+<p>图形管线是指从输入 3D 场景数据，到最终在 2D 屏幕上输出图像，中间所经历的一系列标准操作和流水线过程。目前这套管线已经完全由 GPU 硬件底层实现。</p>
+
+<p>管线的核心步骤如下：</p>
+<ol>
+  <li><strong>Vertex Processing (顶点处理)</strong>：输入三维空间中的顶点，对每个顶点进行模型、视图、投影（MVP）变换，将其投影到屏幕空间。</li>
+  <li><strong>Triangle Processing (三角形处理)</strong>：将变换后的顶点按照规则连成三角形。</li>
+  <li><strong>Rasterization (光栅化)</strong>：通过采样判断，将屏幕空间中的连续三角形打碎（离散化）成屏幕上的 Fragment (片段/像素)。</li>
+  <li><strong>Fragment Processing (片段/像素处理)</strong>：在此阶段进行深度测试（Z-Buffer）来解决遮挡可见性问题，并且进行片段的着色计算（Shading），决定该像素的最终颜色。</li>
+  <li><strong>Framebuffer Operations (帧缓冲与显示)</strong>：将最终的颜色写入缓冲区并在屏幕上显示。</li>
+</ol>
+
+<p><strong>可编程着色器 (Shader)</strong>：
+在现代 GPU 中，管线中的某些部分允许开发者自己写代码来定义如何运作，这种运行在 GPU 上的代码被称为 <strong>Shader (着色器)</strong>。</p>
+<ul>
+  <li>写在顶点处理阶段的叫 <strong>Vertex Shader (顶点着色器)</strong>。</li>
+  <li>写在片段处理阶段的叫 <strong>Fragment Shader / Pixel Shader (片段着色器 / 像素着色器)</strong>。</li>
+  <li>Shader 编程的特点是“通用性”：你只需要写一个针对单一顶点或单一像素如何处理的程序，GPU 内部高度并行的架构会自动对成千上万个像素同时执行该程序，不需要你自己写 <code class="language-plaintext highlighter-rouge">for</code> 循环遍历。</li>
+</ul>
+
+<h4 id="四-纹理映射-texture-mapping">四、 纹理映射 (Texture Mapping)</h4>
+<p>在 Blinn-Phong 模型中，同一物体的不同位置可能有不同的漫反射系数（即不同的表面图案或颜色，如木纹、瓷砖等）。纹理映射就是为了解决这个问题。</p>
+<ul>
+  <li><strong>核心思想</strong>：所有的三维物体表面如果被剥离开来，本质上都是二维的。纹理映射就是把一张 2D 的图像（纹理）像包糖果纸一样“贴”到 3D 物体表面。</li>
+  <li><strong>UV 坐标系 (Texture Coordinates)</strong>：在 2D 纹理图像上，我们建立一个 $U$ 和 $V$ 的坐标系。按照行业约定俗成，不论这幅纹理的长宽比或分辨率是多少，$U$ 和 $V$ 的取值范围都被归一化在 $$ 之间。</li>
+  <li><strong>映射关系</strong>：假设通过艺术家手动拆解或通过参数化（Parameterization）算法，我们已经知道了三维模型上每个三角形顶点对应的纹理 UV 坐标。</li>
+  <li><strong>纹理复用与平铺 (Tiling)</strong>：纹理是可以重复使用的。如果 UV 坐标超过 1 或者通过设计特殊的无缝纹理（Tileable texture），可以像贴瓷砖一样不断重复一张小纹理，从而铺满整个墙面或地板而不产生明显的接缝。</li>
+</ul>
+
+<p>对于三角形内部那些非顶点的像素，它们的 UV 坐标将通过重心坐标（Barycentric coordinates）插值计算得出（此为下一讲的核心内容）。</p>
+
+</body>
+</html>

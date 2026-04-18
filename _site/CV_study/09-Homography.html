@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homography | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="homography">Homography</h3>
+
+<h4 id="1-planar-motion-models">1 Planar Motion Models</h4>
+
+<ul>
+  <li>
+    <p><strong>应用动机</strong>: 在制作 <strong>Panorama (全景图)</strong> 时，如果只是将多张照片简单地进行 <strong>Translation (平移)</strong> 或叠加，图像在接缝处（如栏杆、屋顶）会出现明显的断裂和错位。为了将不同视角的图像完美地 Register (配准) 和拼接，我们需要更高级的平面线性变换模型。</p>
+  </li>
+  <li>
+    <p><strong>平面变换的层级</strong></p>
+
+    <ul>
+      <li><strong>Translation &amp; Rotation (平移与旋转)</strong>: 形状不发生任何改变。</li>
+      <li><strong>Similarity (相似变换)</strong>: 在平移和旋转的基础上加入 <strong>Scale (尺度缩放)</strong> ，形状依然保持。</li>
+      <li><strong>Affine (仿射变换)</strong>: 允许在斜方向上发生拉伸 (Shear)，正方形会变成平行四边形。它的重要特性是<strong>平行的线变换后依然平行</strong>。在矩阵表示中，最底下一行必定是 <code class="language-plaintext highlighter-rouge">0 0 1</code>。
+        <ul>
+          <li>can be 组合 by other more basic opperations</li>
+        </ul>
+      </li>
+      <li><strong>Projective / Homography (透视变换 / 单应性)</strong>: 最通用的平面变换。它会丢失平行性（例如铁轨在图像中会相交），长度比例也会改变，但它仍能保持“直线依然是直线”的特性。矩阵表示里最底下一行 <code class="language-plaintext highlighter-rouge">g h 1</code> 不一定是 <code class="language-plaintext highlighter-rouge">0 0 1</code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="2-homogeneous-coordinates--h-matrix">2 Homogeneous Coordinates &amp; <code class="language-plaintext highlighter-rouge">H</code> Matrix</h4>
+
+<ul>
+  <li>
+    <p><strong>引入齐次坐标</strong>: 传统的 2D 欧氏坐标 $(x, y)$ 无法用一个简单的 2x2 矩阵乘法来表示平移操作。通过引入 <strong>Homogeneous Coordinate (齐次坐标)</strong> ，我们在末尾增加一个维度，将点表示为 3x1 的向量 $[x, y, 1]^T$。这样，平移以及复杂的 Homography 变换都可以统一用 3x3 矩阵的乘法来表示。</p>
+  </li>
+  <li>
+    <p><strong>坐标转换</strong>: 如果要把齐次坐标变回图像平面的欧氏坐标，只需将前两个元素除以第三个元素 $\omega$ (即进行 Normalization)。</p>
+  </li>
+  <li>
+    <p><strong>Define up to a scale (尺度等价)</strong>: <strong>Homography</strong> 是一个任意的 3x3 矩阵 $H$。由于齐次坐标在转回普通坐标时需要除以最后一个元素，所以矩阵 $H$ 整体乘以任何非零常数，最终表示的变换是完全一样的。因此，虽然 $H$ 有 9 个元素，但它只有 <strong>8 个自由度 (Degrees of Freedom, DoF)</strong> 。</p>
+  </li>
+</ul>
+
+<h4 id="3-solve-homography-matrix">3 Solve Homography Matrix</h4>
+<blockquote>
+  <p>DLT Algorithm</p>
+</blockquote>
+
+<ul>
+  <li>
+    <p><strong>数学约束</strong>: 假设我们有一对 <strong>Feature correspondence (特征匹配点)</strong> $x$ 和 $x’$，它们满足 $x’ = Hx$（这里的等于代表相差一个常数倍数，即共线）。这在代数上等价于它们的 <strong>Cross product (叉乘)</strong> 为零，即 $x’ \times Hx = 0$。</p>
+  </li>
+  <li>
+    <p><strong>线性方程组</strong>: 每一对匹配点可以通过叉乘展开，提供 2 个线性独立的方程。因为 $H$ 有 8 个未知数，所以我们<strong>至少需要 4 对特征点 (4 pairs of points)</strong> 才能求解出 $H$。</p>
+  </li>
+  <li>
+    <p><strong>SVD 求解</strong>: 将 4 对（或更多对）点的约束堆叠起来，可以构建一个线性方程组 $AH = 0$。为了避免求出全 0 的无意义解(trivial solution)，我们需要施加约束（通常是要求 $H$ 向量的长度 $|H|=1$）。这本质上变成了一个受约束的最优化问题，其标准解法是对矩阵 $A$ 进行 <strong>SVD (Singular Value Decomposition, 奇异值分解)</strong> ，分解得到 $A = UDV^T$，而我们要找的解 $H$ 就是矩阵 $V$ 的最后一列 (Last column)。</p>
+  </li>
+</ul>
+
+<hr />
+
+<h4 id="overall-pipeline">Overall Pipeline</h4>
+<ul>
+  <li>3D rotation $\to$ homography image transformation</li>
+  <li>Use feature correspondence</li>
+  <li>Solve the homography model</li>
+  <li>Warp all images to a reference one</li>
+  <li>Use your favorite blending</li>
+</ul>
+
+<hr />
+
+<h4 id="4-geometric-premise-of-panorama">4 Geometric premise of Panorama</h4>
+
+<p>使用 Homography 进行无缝图像拼接是有严格几何物理前提的，主要分为两种情况：</p>
+
+<ol>
+  <li><strong>Pure Rotation (纯旋转)</strong>: 相机的投影中心 (Camera center) 绝对不能有平移，只能在原地旋转。如果相机发生平移，远近不同的物体会产生视差，导致投影平面上出现重影 (Ghosting)，Homography 模型就会失效。
+    <blockquote>
+      <p>Panorama is hard to get when close-up graph</p>
+    </blockquote>
+  </li>
+  <li><strong>Planar Scene (纯平面场景)</strong>: 唯一的例外是当目标场景本身就是一个绝对的平面（例如一面平整的墙壁或海报）时，即使相机中心发生了移动，也依然可以用 Homography 将不同视角的图像完美配准。</li>
+</ol>
+
+<h4 id="5-robust-model-fitting">5 Robust Model Fitting</h4>
+
+<p>特征匹配 (Feature matching) 绝不可能是完美的，一定混杂着错误的匹配点，即 <strong>Outliers (离群值)</strong> 。哪怕只有一个极端的 Outlier，传统的 <strong>Least Squares (最小二乘法)</strong> 也会因为其使用平方项 ($x^2$) 作为误差惩罚，导致拟合出的模型发生灾难性的偏离。</p>
+
+<blockquote>
+  <p>为此需要引入两种核心工具来提升算法的鲁棒性.</p>
+  <ul>
+    <li><strong>M-estimator</strong>: 不再使用平方项作为误差惩罚函数 (Penalty function)，而是换成一种增长极其缓慢的函数（如绝对值 Huber loss，或带上限的阈值函数）。这能有效限制外点对优化的巨大拉扯力，降低 Outliers 带来的伤害。</li>
+  </ul>
+</blockquote>
+
+<ul>
+  <li>==<strong>RANSAC (Random Sample Consensus)</strong>: 这是解决 Outlier 的终极杀器==
+    <ul>
+      <li><strong>核心思想</strong>: 既然数据里有坏点，就不要一上来用所有点拟合。相反，每次<strong>随机挑选最少数量的样本 (Random sampling)</strong> (例如拟合直线挑 2 个点，拟合 Homography 挑 4 个点) 来计算一个基础模型。</li>
+      <li><strong>Inlier Counting</strong>: 用这个基础模型去测试剩余所有的点，统计有多少个点与该模型吻合（误差小于阈值），这些吻合的点称为 <strong>Inliers (局内点)</strong> 。</li>
+      <li><strong>迭代最优</strong>: 重复这个随机采样过程 $N$ 次，找出获得 Inliers 投票数最多的那个模型，并提取出它的 Inliers 集合。最后，只用这群干净的 Inliers 集合，再做一次整体的模型拟合 (通常结合 M-estimator)，得到最终结果。
+<em>听上去是valid set</em></li>
+      <li><strong>迭代次数 $N$ 的计算</strong>: $N$ 可由公式 $N = \frac{\log(1-P)}{\log(1-(1-e)^S)}$ 决定（$P$ 是期望成功的置信度如 99%，$S$ 是单次采样数量，$e$ 是 Outlier 的比例）。注意：如果 Outlier 比例超过 50%（坏人比好人多），RANSAC 极大概率会失效。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="6-error--distance-metrics">6 Error / Distance Metrics</h4>
+<p>在优化和评估 Homography 时，通常涉及三种误差定义：
+Cost Function</p>
+<ul>
+  <li>
+    <p><strong>Algebraic distance (代数距离)</strong>: 指求解 $AH = 0$ 时产生的交叉乘积残差 $|AH|$。它纯粹是为了将问题转化为易于计算的线性方程而构造的，缺乏实际的物理几何意义。</p>
+  </li>
+  <li>
+    <p><strong>Geometric distance (几何距离)</strong>: 将原图点 $x$ 通过 $H$ 映射到第二张图后 ($Hx$)，与真实匹配点 $x’$ 之间在二维图像平面上的 <strong>Euclidean distance (欧氏距离)</strong> 。也可以将双向映射的误差相加形成对称的几何误差。</p>
+  </li>
+  <li>
+    <p><strong>Reprojection error (重投影误差)</strong>: 三维视觉中的<strong>黄金标准 (Golden standard)</strong>
+它假设两张图像上检测到的特征点都有高斯噪声。算法致力于寻找一个完美符合数学模型 ($H\hat{x} = \hat{x}’$) 的真实二维坐标 $\hat{x}$ 和 $\hat{x}’$，并使得这些完美坐标到实际检测坐标的欧氏距离之和达到最小。</p>
+  </li>
+</ul>
+
+</body>
+</html>

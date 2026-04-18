@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geometry 2 (Curves and Surfaces) | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="geometry-2-curves-and-surfaces">Geometry 2 (Curves and Surfaces)</h3>
+
+<h4 id="一-显式几何表示-explicit-representations">一、 显式几何表示 (Explicit Representations)</h4>
+<p>在图形学中，除了上一讲提到的隐式几何，我们大量使用显式几何（Explicit Representations）来表示三维物体。常见的显式表示方法包括：</p>
+
+<p><strong>1. 点云 (Point Cloud)</strong></p>
+<ul>
+  <li><strong>概念</strong>：最简单的表示方法，不考虑物体表面的连续性，只用一个包含海量三维空间点 $(x, y, z)$ 的列表来表示物体。</li>
+  <li><strong>特点</strong>：只要点云的密度足够大，人眼就能将其看作是一个连续的表面。它非常适合用来表示极其庞大的扫描数据集（如激光扫描生成的真实世界场景）。</li>
+  <li><strong>缺点</strong>：如果点云在某些区域采样不足（过于稀疏），就很难绘制出物体的表面轮廓，且点云通常会被转化为多边形网格来进行后续处理。</li>
+</ul>
+
+<p><strong>2. 多边形网格 (Polygon Mesh)</strong></p>
+<ul>
+  <li><strong>概念</strong>：在图形学中应用最为广泛的显式几何表示形式，通常使用三角形或四边形网格来描绘各种复杂的物体表面。</li>
+  <li><strong>Wavefront OBJ 文件格式</strong>：这是一种在图形学界通用的文本文件格式，用于存储三维多边形网格数据。它将几何体的各种属性分类列出并重新组合：
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">v</code> (Vertices)：定义空间中的顶点坐标 $(x, y, z)$。</li>
+      <li><code class="language-plaintext highlighter-rouge">vt</code> (Texture Coordinates)：定义纹理坐标 $(u, v)$。</li>
+      <li><code class="language-plaintext highlighter-rouge">vn</code> (Normals)：定义法线向量，用于光照计算。</li>
+      <li><code class="language-plaintext highlighter-rouge">f</code> (Faces)：定义面（如三角形），通过引用顶点、纹理坐标和法线的索引（如 <code class="language-plaintext highlighter-rouge">v/vt/vn</code>）来组合形成几何面。通过共享顶点，这种格式能极大地节省存储空间。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="二-曲线-curves">二、 曲线 (Curves)</h4>
+<p>曲线在图形学中有着极广的应用，包括定义相机的运动轨迹 (Camera Paths)、动画曲线 (Animation Curves) 以及高质量的矢量字体 (Vector Fonts)。</p>
+
+<p><strong>1. 贝塞尔曲线 (Bézier Curves) 与 De Casteljau 算法</strong>
+贝塞尔曲线是一种用一系列控制点 (Control Points) 来明确定义形状的曲线。为了画出一条贝塞尔曲线，我们使用 <strong>De Casteljau 算法</strong>：</p>
+<ul>
+  <li><strong>核心思想</strong>：给定任意数量的控制点，以及一个时间参数 $t \in$（代表曲线从起点走向终点的进程），算法通过不断的<strong>递归线性插值 (Recursive Linear Interpolation)</strong> 来寻找参数 $t$ 对应的空间坐标点。</li>
+  <li><strong>算法过程（以三个控制点 $b_0, b_1, b_2$ 为例）</strong>：
+    <ol>
+      <li>首先在 $b_0 b_1$ 和 $b_1 b_2$ 这两条线段上，分别找到比例为 $t$ 的两个点 $b_0^1$ 和 $b_1^1$。</li>
+      <li>将这两个新点连成一条新线段，并在这条新线段上再次寻找比例为 $t$ 的点 $b_0^2$。</li>
+      <li>当无法继续连线（只剩下一个点）时，这个点就是该时间 $t$ 贝塞尔曲线上的所在位置。通过遍历所有的参数 $t$，就可以画出整条连续的贝塞尔曲线。</li>
+    </ol>
+  </li>
+</ul>
+
+<p><strong>2. 贝塞尔曲线的代数公式 (Algebraic Formula)</strong>
+De Casteljau 算法的几何插值过程，可以被严谨地展开并写成代数公式。</p>
+<ul>
+  <li>在给定的时间 $t$，曲线上点的位置本质上是<strong>所有输入控制点的线性组合</strong>。</li>
+  <li>用来进行组合加权的系数，被称为 <strong>伯恩斯坦多项式 (Bernstein Polynomials)</strong>。</li>
+  <li>它实际上就是二项式 $(t + (1-t))^n$ 的展开式。具体公式为：$B_i^n(t) = \binom{n}{i} t^i (1-t)^{n-i}$。其中 $n$ 为阶数（控制点数减1）。</li>
+</ul>
+
+<p><strong>3. 贝塞尔曲线的重要性质 (Properties)</strong></p>
+<ul>
+  <li><strong>插值端点</strong>：曲线一定会经过第一个控制点 $b_0$（当 $t=0$）和最后一个控制点 $b_n$（当 $t=1$）。</li>
+  <li><strong>切线方向</strong>：对于三次贝塞尔曲线，起点的切线方向一定指向 $3(b_1 - b_0)$，终点的切线方向指向 $3(b_3 - b_2)$。</li>
+  <li><strong>仿射变换性质 (Affine Transformation Property)</strong>：如果要对曲线进行平移、旋转或缩放，不需要对曲线上的每一个点进行变换，<strong>只需对控制点进行仿射变换</strong>，然后再根据新控制点重画曲线，得到的结果是完全一致的。<em>(注意：此性质对投影变换不适用)</em>。</li>
+  <li><strong>凸包性质 (Convex Hull Property)</strong>：画出来的贝塞尔曲线，无论如何都不会超出其所有控制点所连成的<strong>凸包 (Convex hull)</strong> 范围。</li>
+</ul>
+
+<p><strong>4. 分段贝塞尔曲线 (Piecewise Bézier Curves) 与连续性</strong></p>
+<ul>
+  <li><strong>为什么需要分段？</strong> 当控制点数量过多（例如 $n=10$）时，改变其中一个控制点会影响整条曲线，曲线变得极难控制且不够直观。</li>
+  <li><strong>解决方案</strong>：图形学中最常用的做法是采用<strong>分段的三次贝塞尔曲线 (Piecewise cubic Bézier)</strong>。即每四个控制点（包含首尾和两个中间控制柄）定义一段较短的曲线，再将它们首尾拼接起来。我们熟知的字体设计和制图软件（如 Photoshop 中的钢笔工具）都在使用此方法。</li>
+  <li><strong>连续性 (Continuity)</strong>：为了保证两段拼接起来的曲线依然平滑，我们需要满足特定的条件：
+    <ul>
+      <li><strong>$C^0$ 连续 (几何连续)</strong>：第一段曲线的终点与第二段曲线的起点在空间中坐标重合 ($a_n = b_0$)，但连接处可能有明显的折角。</li>
+      <li><strong>$C^1$ 连续 (切线连续)</strong>：两段曲线在连接点处的<strong>切线方向和大小必须完全一致</strong>。这要求两段曲线连接点两侧的控制点与连接点必须共线，且距离相等 ($a_n = b_0 = \frac{1}{2}(a_{n-1} + b_1)$)。</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>5. 样条 (Splines) 与 B 样条简介</strong></p>
+<ul>
+  <li><strong>样条 (Spline)</strong>：指代受到一系列控制点约束的、满足一定连续性要求的光滑曲线。</li>
+  <li><strong>B 样条 (B-splines / Basis splines)</strong>：是贝塞尔曲线的一种进阶与扩展。它最大的优势在于具有<strong>局部性 (Local control)</strong>——移动某一个控制点，只会影响曲线在局部范围内的一小段形状，而不会改变全局，这极大地提升了复杂曲线建模的便利性。</li>
+</ul>
+
+<h4 id="三-曲面-surfaces">三、 曲面 (Surfaces)</h4>
+<p><strong>贝塞尔曲面 (Bézier Surfaces)</strong>
+我们完全可以将生成曲线的逻辑延伸至三维曲面上。以一个双三次贝塞尔曲面片 (Bicubic Bézier Surface Patch) 为例：</p>
+<ul>
+  <li><strong>控制点</strong>：我们需要 $4 \times 4 = 16$ 个网格状排布的控制点来定义这块曲面。</li>
+  <li><strong>参数化查询 (Separable 1D de Casteljau)</strong>：给定二维参数 $(u, v) \in^2$，我们可以利用可分离的一维 De Casteljau 算法来求出曲面上的空间坐标：
+    <ol>
+      <li>首先，沿着曲面的其中一个方向（例如水平方向），将16个控制点分为4组，分别作为一个贝塞尔曲线的输入。</li>
+      <li>代入参数 $u$，可以在这 4 条曲线上分别求得一个点，一共得到 <strong>4 个新的控制点</strong>。</li>
+      <li>接着，将这 4 个新求出的点作为另一组控制点构成一条“移动”的贝塞尔曲线，代入垂直方向的参数 $v$，做最后一次一维的 De Casteljau 运算。</li>
+      <li>得出的最终点即为该 $(u,v)$ 参数在三维曲面上的确切位置。</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="四-网格处理初步-mesh-operations-overview">四、 网格处理初步 (Mesh Operations Overview)</h4>
+<p>在实际运用中，得到了多边形网格后，我们往往还需要对网格（Geometry Processing）进行几何操作来满足不同的渲染需求，主要包括三大类：</p>
+<ol>
+  <li><strong>网格细分 (Mesh Subdivision)</strong>：增加三角形的数量，使得粗糙的模型变得更加圆润平滑。</li>
+  <li><strong>网格简化 (Mesh Simplification)</strong>：在尽可能保持物体原有基本形态的前提下，大量减少三角形的数量，从而节约显存和算力。</li>
+  <li><strong>网格正规化 (Mesh Regularization)</strong>：调整三角形的形状，尽量避免狭长或尖锐的三角形，使其尽可能接近正三角形，以获得更好的渲染属性。
+（关于网格操作的具体算法将在下一讲详细展开）。</li>
+</ol>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SLAM Simultaneous Localization And Mapping | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="slam-simultaneous-localization-and-mapping">SLAM Simultaneous Localization And Mapping</h3>
+
+<h4 id="一-slam-核心概念">一、 SLAM 核心概念</h4>
+<ul>
+  <li><strong>什么是 SLAM</strong>: SLAM 全称是 <strong>Simultaneous Localization and Mapping (同时定位与建图)</strong> 。它解决的是当传感器（如相机或激光雷达）进入一个全新的未知环境时，如何一边移动一边绘制环境地图，同时根据这张地图确认自己位置的问题。</li>
+  <li><strong>两大核心任务</strong>:
+    <ul>
+      <li><strong>Localization (定位)</strong>: 估算传感器在地图中的 <strong>Pose (姿态)</strong> 。Pose 不仅仅包含二维或三维的 X/Y/Z 位置 (Location)，还必须包含传感器的朝向 (Orientation)。</li>
+      <li><strong>Mapping (建图)</strong>: 为这个未知的环境建立一个结构化的地图。</li>
+    </ul>
+  </li>
+  <li><strong>Chicken-and-egg Problem (鸡生蛋与蛋生鸡的困境)</strong>: 如果要精准定位，你必须先有一张精确的地图；但如果你想绘制精确的地图，你又必须确切知道传感器在每个时刻的 Pose。SLAM 的核心算法就是为了解决这个互相依赖的死结。</li>
+</ul>
+
+<h4 id="二-2d-lidar-slam-以激光雷达为例的-slam-基础">二、 2D LiDAR SLAM (以激光雷达为例的 SLAM 基础)</h4>
+<p>为了更容易理解 SLAM 的基本模块，课程首先以 2D 激光雷达 (LiDAR) 为例进行剖析。2D LiDAR 假设机器人在一个大平面内运动，传感器不断旋转打出激光束来测量周围一圈障碍物的距离。</p>
+
+<ul>
+  <li><strong>地图表示 (Occupancy Grid Map)</strong>:
+    <ul>
+      <li>将二维平面划分成细小的网格（例如 5cm x 5cm）。</li>
+      <li>每个网格有三种状态：<strong>Free space (空闲，激光可穿透)</strong>、<strong>Occupied (被占据/有障碍物，激光在此终止)</strong> 以及 <strong>Unknown (未知区域)</strong> 。</li>
+      <li><strong>Mapping (已知 Pose 求地图)</strong>: 当传感器的 Pose 已知时，将每一根测距激光射线投射到网格中。射线途经的网格投票为 Free，射线终点投票为 Occupied。综合多个视角的投票即可生成完整的 Occupancy Grid Map。</li>
+    </ul>
+  </li>
+  <li><strong>追踪定位 (Tracking via ICP)</strong>:
+    <ul>
+      <li><strong>ICP (Iterative Closest Point)</strong>: 如果地图已知，当激光雷达扫描到新的一圈点云时，需要用 ICP 算法来进行点云匹配以计算 Pose。</li>
+      <li>算法会为当前扫描到的每一个点，在现有地图中寻找 <strong>Nearest/Closest point (最近邻点)</strong> 。找到对应关系后，求解一个最优的 Rotation (旋转) 和 Translation (平移) 让当前扫描点贴合到地图上。然后利用新姿态重新寻找最近邻点，不断迭代直到收敛。</li>
+    </ul>
+  </li>
+  <li><strong>完整的 SLAM 流程</strong>:
+    <ol>
+      <li><strong>Initialization (初始化)</strong>: 第一圈扫描的数据直接作为初始地图。</li>
+      <li><strong>Tracking (追踪)</strong>: 传感器移动后，用 ICP 算法将当前扫描与地图匹配，求出最新的 Pose。</li>
+      <li><strong>Mapping (建图)</strong>: 利用求出的最新 Pose，将当前扫描的数据融合更新到 Occupancy Grid Map 中。如此循环往复。</li>
+    </ol>
+  </li>
+</ul>
+
+<h4 id="三-visual-slam-视觉-slam">三、 Visual SLAM (视觉 SLAM)</h4>
+<p>Visual SLAM 本质上是将 Structure from Motion (SfM) 技术应用在连续的视频序列 (Video sequence) 上，并采用增量式 (Incremental) 的方法逐帧求解。</p>
+
+<ul>
+  <li><strong>完整的 SLAM 流程</strong>:
+    <ol>
+      <li><strong>Initialization (初始化)</strong> essential matrix, Triangulation, etc.</li>
+      <li><strong>Pose Tracking</strong>: Feature tracking bext next + Pose-only BA</li>
+      <li><strong>Mapping (建图)</strong>: Triangulation, BA; Loop closure, pose-graph.</li>
+    </ol>
+  </li>
+  <li><strong>与传统 SfM 的区别</strong>:
+    <ul>
+      <li><strong>Real-time (实时性)</strong>: SLAM 为机器人导航等服务，必须保证严格的实时计算。
+        <ul>
+          <li>Keyframe-based</li>
+          <li>local BA</li>
+        </ul>
+      </li>
+      <li><strong>Sequential Input (时序输入)</strong>: 视频帧是连续的，因此特征匹配 (Feature correspondence) 只需要在相邻帧之间进行，且可以利用匀速运动假设来预测相机的初始姿态，大大简化了运算。</li>
+    </ul>
+  </li>
+  <li><strong>Keyframe-based SLAM (基于关键帧的架构)</strong>:
+为了满足实时性，现代视觉 SLAM（如经典算法 PTAM 或 ORB-SLAM2）通常采用双线程或多线程架构。
+    <ul>
+      <li><strong>Tracking Thread (追踪线程 - 严格实时)</strong>: 负责每秒处理 30 帧图像，仅计算 Camera Pose。它通过 KLT 光流法或局部特征匹配找到与上一帧的对应关系，然后利用 <strong>Camera-only Bundle Adjustment (仅相机的光束法平差)</strong> 来快速优化当前帧的姿态。为了提速，此时会固定住 3D 地图点的坐标。</li>
+      <li><strong>Mapping Thread (建图线程 - 后台运行)</strong>: 负责维护和优化三维地图。它不会处理每一帧，而是只处理 <strong>Keyframe (关键帧)</strong> 。当有新的 Keyframe 插入时，它会进行 <strong>Triangulation (三角化)</strong> 生成新的 3D 点，并调用 Local Bundle Adjustment 来联合优化局部相机的姿态和 3D 点坐标。</li>
+    </ul>
+  </li>
+  <li><strong>如何挑选 Keyframe (关键帧)</strong>:
+选取准则通常包括：当前相机的追踪误差较小（Pose 准确）；特征点丢失严重需要补充；相机发生了较大幅度的旋转或平移；或者距离上一个关键帧已经过了较长的时间。</li>
+</ul>
+
+<h4 id="四-高阶鲁棒性技术-robustness-techniques">四、 高阶鲁棒性技术 (Robustness Techniques)</h4>
+<p>真实的视觉环境中充满了挑战，完善的 SLAM 系统必须具备以下高级恢复与优化功能。</p>
+
+<ul>
+  <li><strong>Relocalization (重定位)</strong>:
+    <ul>
+      <li>当遇到运动模糊 (Motion blur)、被移动物体挡住 (Moving object/Occlusion)、剧烈运动或光照突变时，相机的 Tracking 会彻底丢失 (Lost)。</li>
+      <li>恢复方法：通过 <strong>Image search (图像检索，通常基于 Bag of Words 模型)</strong> ，在历史建好的地图中寻找与当前视野相似的 Keyframe。找到后建立特征匹配，并通过 PnP (Perspective-n-Point) 等算法重新计算出相机姿态，从而让系统“满血复活”。</li>
+    </ul>
+  </li>
+  <li><strong>Localization (离线建图与在线定位分离)</strong>:
+    <ul>
+      <li>一种将 Mapping 和 Tracking 彻底拆分到不同时间阶段的玩法。</li>
+      <li>先离线 (Offline) 花大量时间建立一个极其高精度的全图 Map（例如跑遍整个校园）。后续机器人实际运行时，直接加载该地图，只运行在线的 Localization/Tracking 模块。优点是效率极高且地图质量好，缺点是难以应对环境的长期变化（如白天变黑夜、夏天变冬天）。</li>
+    </ul>
+  </li>
+  <li><strong>Loop Closure (回环检测与优化)</strong>:
+    <ul>
+      <li><strong>Drifting Error (漂移误差)</strong>: SLAM 在长期运行中，微小的计算误差会不断累积。导致机器人绕一大圈回到原点时，地图和轨迹无法闭合。</li>
+      <li><strong>Loop Detection (回环检测)</strong>: 使用 Image search 发现当前相机看到的画面在很久以前的历史帧中也出现过（即走回了老路）。</li>
+      <li><strong>Pose Graph Optimization (姿态图优化)</strong>: 一旦检测到回环，不能简单地跑全局 Bundle Adjustment（因为误差太大无法收敛）。系统会将每个 Keyframe 视为顶点 (Vertex)，帧与帧之间的相对运动视为边 (Edge) 构建一个 <strong>Pose Graph</strong> 。然后利用 Global SfM 的思想进行全局姿态图优化，将累积的误差均匀地分摊到整条轨迹中，从而完美拉齐整个地图。</li>
+    </ul>
+  </li>
+</ul>
+
+</body>
+</html>

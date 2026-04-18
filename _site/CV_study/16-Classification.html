@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classification | Fufu142857</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.3.0/web/hack.min.css">
+  <link rel="icon" type="image/png" href="/figures/favicon.png">
+</head>
+<body>
+  <h3 id="classification">Classification</h3>
+
+<h4 id="1-fundamentals-of-classification-and-recognition">1 Fundamentals of Classification and recognition</h4>
+<p>图像分类与识别是计算机视觉进入“语义 (Semantic)”理解阶段的核心问题。</p>
+<ul>
+  <li>
+    <p><strong>核心作用</strong>: 对机器人等人工智能设备而言，了解所处的环境极其重要。只有识别出当前是街道还是教室、前方是危险的熊还是可爱的兔子，它才能采取正确的策略应对。</p>
+  </li>
+  <li><strong>常见分类任务 (Sample Classification Problems)</strong>:
+    <ul>
+      <li><strong>Object recognition (物体识别)</strong>: 判断图片中是猫、狗、汽车还是飞机。</li>
+      <li><strong>Place recognition (场景识别)</strong>: 判断照片是在街道、森林还是办公室拍摄的。</li>
+      <li><strong>Fine-grained recognition (细粒度分类)</strong>: 在已知大类的情况下做极其细致的分类，例如不仅知道是一只鸟，还要识别出它是杜鹃鸟还是火烈鸟。</li>
+    </ul>
+  </li>
+  <li><strong>作为检测的基础 (Building block for Detection)</strong>: 分类能力可以用来解决目标检测 (Detection) 问题。例如，将一张大图切分成无数个小图块 (Overlapping windows)，对每个小图块进行二分类 (如“是电脑屏幕=1”和“不是电脑屏幕=0”)，就能把图中的电脑屏幕全部框选出来。</li>
+</ul>
+
+<h4 id="2-challenges">2 Challenges</h4>
+<p>让计算机像人眼一样一眼认出猫狗是非常难的，主要面临以下挑战：</p>
+
+<ul>
+  <li>
+    <p><strong>Semantic Gap (语义鸿沟)</strong>: 人眼看到的是一只猫，但计算机接收到的只是一堆没有语义信息的数字矩阵 (RGB pixel values / Radiance)。这些数字本身不会告诉你这是猫还是狗。</p>
+  </li>
+  <li>
+    <p><strong>Viewpoint variation (视点/视角变化)</strong>: 相机稍微移动一下，同一只猫在图像上的像素值就会完全改变，但算法必须知道这仍然是同一只猫。</p>
+  </li>
+  <li><strong>Illumination (光照变化)</strong>: 无论是顺光、侧光还是完全逆光的剪影，物体的像素值差异巨大。
+    <blockquote>
+      <p>光照变化真的fansirenl</p>
+    </blockquote>
+  </li>
+  <li>
+    <p><strong>Deformation (形变)</strong>: 比如猫可以摆出各种千奇百怪的姿态（俗称“猫是液体”），算法需要适应物体自身的严重变形。</p>
+  </li>
+  <li><strong>Occlusion (遮挡)</strong>: 物体可能只露出一条尾巴，系统仍需具备识别它的能力。</li>
+</ul>
+
+<h4 id="3-data-driven-and-k-nn-classifier">3 Data-driven and K-NN Classifier</h4>
+
+<p>解决上述难题目前最有效的方法是基于机器学习的 <strong>Data-driven (数据驱动)</strong> 方法。</p>
+<ul>
+  <li>
+    <p><strong>流程</strong>: 收集海量带有标签 (Labels) 的训练图像 $\rightarrow$ 训练一个 <strong>Classifier (分类器)</strong> $\rightarrow$ 在未见过的新图像上测试其分类能力。</p>
+  </li>
+  <li><strong>K-NN (K-Nearest Neighbor, K-近邻分类器)</strong>:
+    <ul>
+      <li>这是最简单的一种分类器，训练过程仅仅是把所有的训练数据和标签“死记硬背”存在内存里。</li>
+      <li>测试时，拿输入图像去和所有训练图像算距离，找到最相似的一张 (Nearest neighbor)，然后直接把它的标签抄过来。如果看最近的 $K$ 张图片综合投票，就是 K-NN。</li>
+    </ul>
+  </li>
+  <li><strong>Feature Representation (特征表示)</strong>:
+    <blockquote>
+      <p>距离计算.</p>
+    </blockquote>
+    <ul>
+      <li>在 K-NN 中，直接用原图的像素算 L1/L2 距离是无效的，因为视点和光照一变距离就会极大。</li>
+      <li>我们需要提取更好的特征，例如 <strong>Bag of Words (BoW)</strong> 或 <strong>HOG feature</strong> ，将图像转化为直方图向 (Histogram / Feature vector) 后再计算距离，以此对抗光照和视角的变化。</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="4-parametric-linear-classifier">4 Parametric Linear Classifier</h4>
+<p>为了摆脱 K-NN 必须记住所有数据的笨重，我们引入带有参数 $W$ 的函数 $f(x, W) = y$。</p>
+<ul>
+  <li><strong>Linear Classifier (线性分类器)</strong>: 最基础的形式是 $f(x) = Wx + b$。</li>
+  <li><strong>矩阵运算解释</strong>: 假设输入图像 $x$ 被拉成一个 3000 维的列向量，如果我们要分 10 个类 (如 CIFAR-10 数据集)，那么权重矩阵 $W$ 就是一个 10x3000 的矩阵。两者相乘再加上偏置 $b$，最终会输出一个 10x1 的向量。</li>
+  <li><strong>输出含义</strong>: 这最终的 10 个数字，就是分类器对这张图片在各个类别上的 <strong>Scores (打分)</strong> 。例如猫得 -96 分，狗得 430 分，最终分数越高代表模型认为属于该类的概率越大。</li>
+</ul>
+
+<h4 id="5-loss-function">5 Loss Function</h4>
+<p>我们如何判断分类器当前计算出的分数好不好？这就需要定义 <strong>Loss function (损失函数)</strong> 。它的目标是衡量预测分数与真实标签 (Ground truth) 之间的差异，差异越大，Loss (惩罚) 越高。</p>
+
+<p><strong>1. Softmax Loss (交叉熵损失)</strong></p>
+<ul>
+  <li><strong>概率化转换</strong>: 原始的线性打分有正有负，缺乏统计意义。Softmax 将所有打分通过指数函数 (Exponential) 变成正数，然后再除以它们的总和进行 <strong>Normalization (归一化)</strong> 。这样，得分就变成了一个总和为 1 的 <strong>Probability (概率分布)</strong> 。</li>
+  <li><strong>惩罚计算</strong>: 我们提取出“正确类别”对应的那一项概率 $P_{correct}$。因为它是概率，最完美的预测是 $P_{correct} = 1$。因此，Softmax Loss 定义为负对数 $-\log(P_{correct})$。当预测概率接近 1 时，Loss 几乎为 0；当预测概率接近 0 时，Loss 会趋于无穷大。</li>
+</ul>
+
+<p><strong>2. SVM Loss (Hinge Loss)</strong></p>
+<ul>
+  <li><strong>核心思想</strong>: 这种方法不要求把得分变成概率，它只要求“正确类别的得分”必须比“其他所有错误类别的得分”高出一个指定的安全边界 (Margin, 例如设定为 1)。</li>
+  <li><strong>惩罚计算</strong>: $\text{Loss} = \max(0, \text{错误类得分} - \text{正确类得分} + 1)$。如果正确类得分已经远远甩开错误类得分，相减后加上 1 仍是负数，与 0 取 max 后 Loss 为 0 (没有惩罚)。反之则产生惩罚。</li>
+</ul>
+
+<p><strong>3. Regularization (正则化)</strong></p>
+<ul>
+  <li>单独使用 Loss function 去求解 $W$ 往往会导致解不唯一 (例如把 $W$ 放大 100 倍，SVM Loss 可能仍然是 0)。</li>
+  <li>我们需要在损失函数中加入 <strong>Regularizer (正则化项，如 L2 或 L1 norm)</strong> ，强制要求参数 $W$ 尽可能地小或平滑。这不仅使得求解空间更稳定，还能防止模型过度复杂化。</li>
+</ul>
+
+<h4 id="6-optimization-and-gradient-descent">6 Optimization and Gradient Descent</h4>
+<p>有了分类器结构和损失函数，最后一步就是通过不断的迭代来寻找最优的参数 $W$，使其 Loss 最小化。</p>
+
+<ul>
+  <li><strong>Gradient Descent (梯度下降)</strong>:
+    <ul>
+      <li>核心算法：从一个随机初始化的 $W$ 开始，计算 Loss 函数关于 $W$ 的梯度 (Gradient / 导数)。梯度指向 Loss 增长最快的方向，因此我们让参数<strong>逆着</strong>梯度方向走一小步，公式为 $W_{new} = W_{old} - \alpha \cdot \text{Gradient}$，这里的 $\alpha$ 就是 <strong>Learning rate (学习率)</strong> 。</li>
+    </ul>
+  </li>
+  <li><strong>SGD (Stochastic Gradient Descent, 随机梯度下降)</strong>:
+    <ul>
+      <li><strong>动机</strong>: 当训练集有 100 万张图时，一次性把所有图算完再求梯度去更新参数，计算量极大且慢。</li>
+      <li><strong>做法</strong>: 每次迭代只随机抽取极少量的样本 (比如 32, 64 或 128 张，称为一个 Mini-batch) 来近似估算梯度并更新参数。这就是深度学习中最常用的 SGD。</li>
+    </ul>
+  </li>
+  <li><strong>优化进阶 - Momentum (动量)</strong>:
+    <ul>
+      <li><strong>梯度下降的缺陷</strong>:
+        <ol>
+          <li>在狭长山谷地形 (等高线呈细长椭圆) 中，梯度会频繁垂直于谷底，导致参数在山谷两侧来回震荡 (Zig-zagging)，收敛极其缓慢。</li>
+          <li>容易陷入 <strong>Local minimum (局部最优解)</strong> 或鞍点停滞不前，因为那里的梯度等于 0。</li>
+        </ol>
+      </li>
+      <li><strong>动量机制</strong>: 模拟物理学中球从山上滚优化与梯度下降下的惯性。在更新参数时，不仅考虑当前的梯度，还要加上历史上积累的“速度 (Velocity)”。这样，即使走到局部平坦处，历史惯性也能带着模型冲出小坑；而在峡谷震荡中，上下震荡的梯度会被互相抵消，而向前的速度会被不断叠加增强，从而实现稳定且快速的收敛。</li>
+    </ul>
+  </li>
+</ul>
+
+</body>
+</html>
