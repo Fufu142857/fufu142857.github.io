@@ -15,7 +15,7 @@ order: 4
 
 而书目会以标准的作者与书名形式呈现；
 
-在其下方，我会附上指向 **Wiki 或官方档案** 的外部链接和我的简短书评。
+在其下方，我会附上指向 **Wiki / Goodreads 或官方档案** 的外部链接和我的简短书评。
 
 <br>
 
@@ -34,11 +34,45 @@ order: 4
   <a href="https://fr.wikipedia.org/wiki/Le_Mythe_de_Sisyphe">Wiki Link: https://fr.wikipedia.org/wiki/Le_Mythe_de_Sisyphe</a>
 </div>
 
+#### Mitch Albom: *Tuesdays with Morrie*
+
+<div align="center">
+  <a href="https://en.wikipedia.org/wiki/Tuesdays_with_Morrie">Wiki Link: https://en.wikipedia.org/wiki/Tuesdays_with_Morrie</a>
+</div>
+
 <br>
 
 ### Novel
 
-<br>
+#### Mitch Albom: *Have a Little Faith*
+
+<div align="center">
+  <a href="https://en.wikipedia.org/wiki/Have_a_Little_Faith_(book)">Wiki Link: https://en.wikipedia.org/wiki/Have_a_Little_Faith_(book)</a>
+</div>
+
+#### Mitch Albom: *The Five People You Meet in Heaven*
+
+<div align="center">
+  <a href="https://en.wikipedia.org/wiki/The_Five_People_You_Meet_in_Heaven">Wiki Link: https://en.wikipedia.org/wiki/The_Five_People_You_Meet_in_Heaven</a>
+</div>
+
+#### Mitch Albom: *For One More Day*
+
+<div align="center">
+  <a href="https://en.wikipedia.org/wiki/For_One_More_Day">Wiki Link: https://en.wikipedia.org/wiki/For_One_More_Day</a>
+</div>
+
+#### Mitch Albom: *The Magic Strings of Frankie Presto*
+
+<div align="center">
+  <a href="https://en.wikipedia.org/wiki/The_Magic_Strings_of_Frankie_Presto">Wiki Link: https://en.wikipedia.org/wiki/The_Magic_Strings_of_Frankie_Presto</a>
+</div>
+
+#### Mitch Albom: *The First Phone Call from Heaven*
+
+<div align="center">
+  <a href="https://www.goodreads.com/book/show/17888952-the-first-phone-call-from-heaven">Goodreads Link: https://www.goodreads.com/book/show/17888952-the-first-phone-call-from-heaven</a>
+</div>
 
 ### Poetry
 
