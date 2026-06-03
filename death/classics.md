@@ -85,7 +85,9 @@ order: 4
     </div>
     
     <div style="text-indent: 2em; text-align: justify; margin: 0; font-size: 1.05em; letter-spacing: 1px;">
-        这无疑是我目前最喜欢的一本小说。不同于 Mitch Albom 以往创作的鸡汤风味，这本著作的边缘带着明显的现实粗糙，让人轻轻发疼。Mitch Albom 的文笔毋庸置疑，无论是译本还是原文都流淌着悲伤而优美的血液；他以娴熟的叙述技巧、独特的全局构思，虚构出一个 Legend 般的人生，甚至将其毫无违和感地嵌进真实的音乐史里。这本书的篇幅很长，描绘了 Frankie 极尽跌宕起伏的人生；极致的喜悦、疯狂还有深渊带来的坠落般的哀伤，命运的戏耍和天才的魅力，本就足够惊艳——我常常在阅读中不禁感慨：“这才是一波三折！”但更具吸引力的是，故事传达的<strong style="font-weight: 600; color: #e6edf3;">人与人的影响，音乐与爱，死亡与命运</strong>（<em style="font-style: italic;">我永远爱 Mitch Albom 对于死亡的见解！</em>），使我的心弦变成了 Frankie 的第七根蓝色魔弦，一直颤抖下去，for the rest of my life ...
+        这无疑是我目前最喜欢的一本小说。不同于 Mitch Albom 以往创作的鸡汤风味，这本著作的边缘带着明显的现实粗糙，让人轻轻发疼。
+        Mitch Albom 的文笔毋庸置疑，无论是译本还是原文都流淌着悲伤而优美的血液；他以娴熟的叙述技巧、独特的全局构思，虚构出一个 Legend 般的人生，甚至将其毫无违和感地嵌进真实的音乐史里。
+        这本书的篇幅很长，描绘了 Frankie 极尽跌宕起伏的人生；极致的喜悦、疯狂还有深渊带来的坠落般的哀伤，命运的戏耍和天才的魅力，本就足够惊艳——我常常在阅读中不禁感慨：“这才是一波三折！”但更具吸引力的是，故事传达的<strong style="font-weight: 600; color: #e6edf3;">人与人的影响，音乐与爱，死亡与命运</strong>（<em style="font-style: italic;">我永远爱 Mitch Albom 对于死亡的见解！</em>），使我的心弦变成了 Frankie 的第七根蓝色魔弦，一直颤抖下去，for the rest of my life ......
     </div>
 
 </div>
