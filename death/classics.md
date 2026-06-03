@@ -34,6 +34,8 @@ order: 4
   <a href="https://fr.wikipedia.org/wiki/Le_Mythe_de_Sisyphe">Wiki Link: https://fr.wikipedia.org/wiki/Le_Mythe_de_Sisyphe</a>
 </div>
 
+<br>
+
 #### Mitch Albom: *Tuesdays with Morrie*
 
 <div align="center">
@@ -50,11 +52,15 @@ order: 4
   <a href="https://en.wikipedia.org/wiki/Have_a_Little_Faith_(book)">Wiki Link: https://en.wikipedia.org/wiki/Have_a_Little_Faith_(book)</a>
 </div>
 
+<br>
+
 #### Mitch Albom: *The Five People You Meet in Heaven*
 
 <div align="center">
   <a href="https://en.wikipedia.org/wiki/The_Five_People_You_Meet_in_Heaven">Wiki Link: https://en.wikipedia.org/wiki/The_Five_People_You_Meet_in_Heaven</a>
 </div>
+
+<br>
 
 #### Mitch Albom: *For One More Day*
 
@@ -62,17 +68,23 @@ order: 4
   <a href="https://en.wikipedia.org/wiki/For_One_More_Day">Wiki Link: https://en.wikipedia.org/wiki/For_One_More_Day</a>
 </div>
 
+<br>
+
 #### Mitch Albom: *The Magic Strings of Frankie Presto*
 
 <div align="center">
   <a href="https://en.wikipedia.org/wiki/The_Magic_Strings_of_Frankie_Presto">Wiki Link: https://en.wikipedia.org/wiki/The_Magic_Strings_of_Frankie_Presto</a>
 </div>
 
+<br>
+
 #### Mitch Albom: *The First Phone Call from Heaven*
 
 <div align="center">
   <a href="https://www.goodreads.com/book/show/17888952-the-first-phone-call-from-heaven">Goodreads Link: https://www.goodreads.com/book/show/17888952-the-first-phone-call-from-heaven</a>
 </div>
+
+<br>
 
 ### Poetry
 
