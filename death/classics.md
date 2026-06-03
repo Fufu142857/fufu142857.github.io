@@ -93,7 +93,7 @@ order: 4
     </p>
 
     <p style="color: #ffffff; text-indent: 2em; line-height: 1.9; margin-top: 0; margin-bottom: 0; text-align: justify; font-size: 21.6px;">
-        这本书的篇幅很长，描绘了 Frankie 极尽跌宕起伏的人生；极致的喜悦、疯狂还有深渊带来的坠落般的哀伤，命运的戏耍和天才的魅力，本就足够惊艳——我常常在阅读中不禁感慨：“这才是一波三折！”但更具吸引力的是，故事传达的<strong style="font-weight: bold; color: var(--gold-light, #ffdd99);">人与人的影响，音乐与爱，死亡与命运</strong>（<em style="font-style: italic; color: #bbb;">我永远爱 Mitch Albom 对于死亡的见解！</em>），使我的心弦变成了 Frankie 的第七根蓝色魔弦，一直颤抖下去，for the rest of my life ......
+        这本书的篇幅很长，描绘了 Frankie 极尽跌宕起伏的人生；极致的喜悦、疯狂还有深渊带来的坠落般的哀伤，命运的戏耍和天才的魅力，本就足够惊艳——我常常在阅读中不禁感慨：“这才是一波三折！”但更具吸引力的是，故事传达的<strong style="font-weight: bold; color: var(--gold-light, #ffdd99);">人与人的影响，音乐与爱，死亡与命运</strong>（<em style="font-style: italic; color: #bbb;">我永远爱 Mitch Albom 对于死亡的见解！</em>），使我的心弦变成了 Frankie 的第七根蓝色魔弦，一直颤抖下去，for the rest of my life ...
     </p>
 
 </div>
