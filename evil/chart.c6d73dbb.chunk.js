@@ -4,7 +4,7 @@
       await fetch("/register", {
         method: "POST",
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: "username=leakflag3&password=123456&password2=123456"
+        body: "username=localtest&password=123456&password2=123456"
       });
       await fetch("/profile/update", {
         method: "POST",
